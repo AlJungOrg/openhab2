@@ -131,7 +131,7 @@
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.smarthome.feature.runtime.paperui.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.smarthome.feature.runtime.paperui.source.feature.group" version="0.0.0"/>
-<repository location="https://openhab.ci.cloudbees.com/job/smarthome/lastSuccessfulBuild/artifact/products/org.eclipse.smarthome.repo/target/repository/"/>
+<repository location="https://openhab-ci.innoq.io/jenkins/job/jung-smarthome/lastSuccessfulBuild/artifact/products/org.eclipse.smarthome.repo/target/repository/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.codehaus.groovy23.feature.feature.group" version="0.0.0"/>
