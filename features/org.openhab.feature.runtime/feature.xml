@@ -27,10 +27,6 @@
       %license
    </license>
 
-   <includes
-         id="org.eclipse.smarthome.feature.runtime.paperui"
-         version="0.0.0"/>
-
    <plugin
          id="org.openhab.core"
          download-size="0"

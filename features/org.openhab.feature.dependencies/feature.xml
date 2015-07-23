@@ -27,6 +27,10 @@
       %license
    </license>
 
+   <includes
+         id="org.eclipse.smarthome.feature.runtime.paperui"
+         version="0.0.0"/>
+
    <plugin
          id="ch.qos.logback.classic"
          download-size="0"
