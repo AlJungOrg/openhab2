@@ -81,15 +81,15 @@ public class DashboardService {
     }
     
     protected HttpServlet createServlet() {
-        String indexTemplate = findRessourceEntry("index.html");
-        String entryTemplate = findRessourceEntry("entry.html");
+        String indexTemplate = findRessourceEntry("templates/index.html");
+        String entryTemplate = findRessourceEntry("templates/entry.html");
         return new DashboardServlet(indexTemplate, entryTemplate, tiles);
     }
 
 	private String findRessourceEntry(String ressourcePath) {
 		URL relevantEntry = null;
 		
-		Enumeration<URL> entries = bundleContext.getBundle().findEntries("templates", ressourcePath, true);
+		Enumeration<URL> entries = bundleContext.getBundle().findEntries("/", ressourcePath, false);
 		if (entries != null) {
 			while (entries.hasMoreElements()) {
 				relevantEntry = entries.nextElement();
