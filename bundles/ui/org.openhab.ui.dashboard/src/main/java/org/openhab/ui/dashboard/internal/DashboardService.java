@@ -10,6 +10,7 @@ package org.openhab.ui.dashboard.internal;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -80,31 +81,30 @@ public class DashboardService {
     }
     
     protected HttpServlet createServlet() {
-        String indexTemplate;
-        String entryTemplate;
-        
-        URL index = bundleContext.getBundle().getEntry("templates/index.html");
-        if (index != null) {
-            try {
-                indexTemplate = IOUtils.toString(index.openStream());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            throw new RuntimeException("Cannot find index.html - failed to initialize dashboard servlet");
-        }
-
-        URL entry = bundleContext.getBundle().getEntry("templates/entry.html");
-        if (entry != null) {
-            try {
-                entryTemplate = IOUtils.toString(entry.openStream());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            throw new RuntimeException("Cannot find entry.html - failed to initialize dashboard servlet");
-        }
-        
+        String indexTemplate = findRessourceEntry("templates/index.html");
+        String entryTemplate = findRessourceEntry("templates/entry.html");
         return new DashboardServlet(indexTemplate, entryTemplate, tiles);
     }
+
+	private String findRessourceEntry(String ressourcePath) {
+		URL relevantEntry = null;
+		
+		Enumeration<URL> entries = bundleContext.getBundle().findEntries("/", ressourcePath, false);
+		if (entries != null) {
+			while (entries.hasMoreElements()) {
+				relevantEntry = entries.nextElement();
+			}
+		}
+		
+        if (relevantEntry != null) {
+            try {
+                return IOUtils.toString(relevantEntry.openStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            throw new RuntimeException("Cannot find " + ressourcePath + " - failed to initialize dashboard servlet");
+        }
+	}
+    
 }
