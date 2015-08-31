@@ -31,6 +31,7 @@ All optional add-ons for openHAB 2 are [available in a separate download](https:
 | Add-on | Type |
 |--------|------|
 | Denon | Binding |
+| Anel | Binding |
 | EDS OWServer | Binding |
 | Energenie | Binding |
 | Enocean | Binding |
@@ -51,6 +52,7 @@ All optional add-ons for openHAB 2 are [available in a separate download](https:
 | OpenEnergyMonitor | Binding |
 | OneWire | Binding |
 | RFXCOM | Binding |
+| Samsung AC | Binding |
 | SNMP | Binding |
 | SwegonVentilation | Binding |
 | SystemInfo | Binding |
@@ -63,9 +65,20 @@ All optional add-ons for openHAB 2 are [available in a separate download](https:
 | Logging | Persistence |
 | JPA | Persistence |
 | Mail | Action |
+| Pushover | Action |
 | XBMC | Action |
 | XMPP | Action |
+| GoogleTTS | TTS engine |
 | MaryTTS | TTS engine |
+
+## Currently incompatible 1.x Add-ons:
+
+| Add-on | Type | Reason
+|--------|------|------|
+| MySQL | Persistence | [Unsynchronized change in openHAB 1 core](https://github.com/openhab/openhab/issues/2661)
+| InfluxDB | Persistence | [Unsynchronized change in openHAB 1 core](https://github.com/openhab/openhab/issues/2661)
+| MongoDB | Persistence | [Unsynchronized change in openHAB 1 core](https://github.com/openhab/openhab/issues/2661)
+
 
 ## Compatible Applications
 
