@@ -1,20 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="Generated from openHAB 2 Target Platform" sequenceNumber="141">
-<locations>
-<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.smarthome.feature.runtime.binding.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.smarthome.feature.runtime.console.equinox.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.smarthome.feature.runtime.rest.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.smarthome.feature.test.feature.group" version="0.0.0"/>
-<repository location="http://openhab-ci.innoq.io:8081/nexus/content/unzip/jung-unzip/org/eclipse/smarthome/products/org.eclipse.smarthome.repo/0.8.0-SNAPSHOT/org.eclipse.smarthome.repo-0.8.0-20150828.092104-1.zip-unzip/"/>
-</location>
-<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.emf.sdk.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.equinox.sdk.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.sdk.ide" version="0.0.0"/>
-<repository location="http://download.eclipse.org/releases/luna/201502271000"/>
-</location>
+<?pde version="3.8"?>
+<target name="openHAB 2 Target Platform" sequenceNumber="142">
+  <locations>
+    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+      <unit id="org.eclipse.smarthome.feature.runtime.core.feature.group" version="0.0.0"/>
+      <unit id="org.eclipse.smarthome.feature.runtime.binding.feature.group" version="0.0.0"/>
+      <unit id="org.eclipse.smarthome.feature.runtime.console.equinox.feature.group" version="0.0.0"/>
+      <unit id="org.eclipse.smarthome.feature.runtime.rest.feature.group" version="0.0.0"/>
+      <unit id="org.eclipse.smarthome.feature.test.feature.group" version="0.0.0"/>
+      <repository location="http://openhab-ci.innoq.io:8081/nexus/content/unzip/jung-unzip/org/eclipse/smarthome/products/org.eclipse.smarthome.repo/0.8.0-SNAPSHOT/org.eclipse.smarthome.repo-0.8.0-20150911.075345-3.zip-unzip/"/>
+    </location>
+    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+      <unit id="org.eclipse.smarthome.feature.runtime.paperui.feature.group" version="0.0.0"/>
+      <unit id="org.eclipse.smarthome.feature.runtime.paperui.source.feature.group" version="0.0.0"/>
+      <repository location="http://openhab-ci.innoq.io:8081/nexus/content/unzip/jung-esh-unzip/org/eclipse/smarthome/products/org.eclipse.smarthome.repo/0.8.0-SNAPSHOT/org.eclipse.smarthome.repo-0.8.0-SNAPSHOT.zip-unzip/"/>
+    </location>
+    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+      <unit id="org.eclipse.emf.mwe2.runtime.sdk.feature.group" version="0.0.0"/>
+      <unit id="org.eclipse.emf.sdk.feature.group" version="0.0.0"/>
+      <unit id="org.eclipse.equinox.sdk.feature.group" version="0.0.0"/>
+      <unit id="org.eclipse.sdk.ide" version="0.0.0"/>
+      <repository location="http://download.eclipse.org/releases/luna/201502271000"/>
+    </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="com.google.inject" version="3.0.0.v201312141243"/>
 <unit id="com.google.inject.source" version="3.0.0.v201312141243"/>
@@ -116,9 +123,8 @@
 <repository location="http://download.eclipse.org/paho/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.smarthome.feature.runtime.paperui.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.smarthome.feature.runtime.paperui.source.feature.group" version="0.0.0"/>
-<repository location="http://openhab-ci.innoq.io:8081/nexus/content/unzip/jung-esh-unzip/org/eclipse/smarthome/products/org.eclipse.smarthome.repo/0.8.0-SNAPSHOT/org.eclipse.smarthome.repo-0.8.0-SNAPSHOT.zip-unzip/"/>
+<unit id="javax.jmdns.feature.feature.group" version="3.4.2"/>
+<repository location="http://www.openhab.org/jmdns/update-site/3.4.2/"/>
 </location>
 </locations>
 </target>
