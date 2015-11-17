@@ -8,7 +8,7 @@
       <unit id="org.eclipse.smarthome.feature.runtime.console.equinox.feature.group" version="0.0.0"/>
       <unit id="org.eclipse.smarthome.feature.runtime.rest.feature.group" version="0.0.0"/>
       <unit id="org.eclipse.smarthome.feature.test.feature.group" version="0.0.0"/>
-      <repository location="http://openhab-ci.innoq.io:8081/nexus/content/unzip/jung-unzip/org/eclipse/smarthome/products/org.eclipse.smarthome.repo/0.8.0-SNAPSHOT/org.eclipse.smarthome.repo-0.8.0-20151008.103921-4.zip-unzip/"/>
+      <repository location="http://openhab-ci.innoq.io:8081/nexus/content/unzip/jung-unzip/org/eclipse/smarthome/products/org.eclipse.smarthome.repo/0.8.0-SNAPSHOT/org.eclipse.smarthome.repo-0.8.0-20151117.123913-5.zip-unzip/"/>
     </location>
     <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
       <unit id="org.eclipse.smarthome.feature.runtime.paperui.feature.group" version="0.0.0"/>

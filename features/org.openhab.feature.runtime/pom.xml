@@ -31,6 +31,7 @@
             <configuration>
               <excludes>
                 <plugin id="org.openhab.io.jetty" />
+                <plugin id="org.openhab.io.jetty.certificate" />
                 <plugin id="org.openhab.io.rest.docs" />
                 <plugin id="org.openhab.io.transport.serial" />
               </excludes>
