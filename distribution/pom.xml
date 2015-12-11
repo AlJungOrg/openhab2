@@ -62,11 +62,6 @@
         </dependency>
         <dependency>
             <groupId>org.openhab.binding</groupId>
-            <artifactId>org.openhab.binding.sonos</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openhab.binding</groupId>
             <artifactId>org.openhab.binding.max</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -132,6 +127,16 @@
         </dependency>
         <dependency>
             <groupId>org.openhab.binding</groupId>
+            <artifactId>org.openhab.binding.rfxcom</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openhab.binding</groupId>
+            <artifactId>org.openhab.binding.samsungtv</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openhab.binding</groupId>
             <artifactId>org.openhab.binding.smaenergymeter</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -158,6 +163,12 @@
         </dependency>    	
 
         <dependency>
+            <groupId>org.openhab.ui</groupId>
+            <artifactId>org.openhab.ui.cometvisu</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.eclipse.smarthome.binding</groupId>
             <artifactId>org.eclipse.smarthome.binding.yahooweather</artifactId>
             <version>${esh.version}</version>
@@ -165,6 +176,11 @@
         <dependency>
             <groupId>org.eclipse.smarthome.binding</groupId>
             <artifactId>org.eclipse.smarthome.binding.hue</artifactId>
+            <version>${esh.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.smarthome.binding</groupId>
+            <artifactId>org.eclipse.smarthome.binding.sonos</artifactId>
             <version>${esh.version}</version>
         </dependency>
         <dependency>
@@ -187,6 +203,16 @@
         <dependency>
             <groupId>org.openhab.binding</groupId>
             <artifactId>org.openhab.binding.anel</artifactId>
+            <version>${oh1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openhab.binding</groupId>
+            <artifactId>org.openhab.binding.caldav-command</artifactId>
+            <version>${oh1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openhab.binding</groupId>
+            <artifactId>org.openhab.binding.caldav-personal</artifactId>
             <version>${oh1.version}</version>
         </dependency>
         <dependency>
@@ -217,6 +243,11 @@
         <dependency>
             <groupId>org.openhab.binding</groupId>
             <artifactId>org.openhab.binding.enocean</artifactId>
+            <version>${oh1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openhab.binding</groupId>
+            <artifactId>org.openhab.binding.enphaseenergy</artifactId>
             <version>${oh1.version}</version>
         </dependency>
         <dependency>
@@ -274,7 +305,7 @@
             <artifactId>org.openhab.binding.lcn</artifactId>
             <version>${oh1.version}</version>
         </dependency>
-         <dependency>
+        <dependency>
             <groupId>org.openhab.binding</groupId>
             <artifactId>org.openhab.binding.milight</artifactId>
             <version>${oh1.version}</version>
@@ -316,7 +347,7 @@
         </dependency>
         <dependency>
             <groupId>org.openhab.binding</groupId>
-            <artifactId>org.openhab.binding.rfxcom</artifactId>
+            <artifactId>org.openhab.binding.rwesmarthome</artifactId>
             <version>${oh1.version}</version>
         </dependency>
         <dependency>
@@ -327,6 +358,11 @@
         <dependency>
             <groupId>org.openhab.binding</groupId>
             <artifactId>org.openhab.binding.snmp</artifactId>
+            <version>${oh1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openhab.binding</groupId>
+            <artifactId>org.openhab.binding.sapp</artifactId>
             <version>${oh1.version}</version>
         </dependency>
         <dependency>
@@ -408,6 +444,11 @@
         </dependency>    	
         <dependency>
             <groupId>org.openhab.action</groupId>
+            <artifactId>org.openhab.action.telegram</artifactId>
+            <version>${oh1.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openhab.action</groupId>
             <artifactId>org.openhab.action.xbmc</artifactId>
             <version>${oh1.version}</version>
         </dependency>    	
@@ -417,6 +458,11 @@
             <version>${oh1.version}</version>
         </dependency>    	
 
+        <dependency>
+            <groupId>org.openhab.io</groupId>
+            <artifactId>org.openhab.io.caldav</artifactId>
+            <version>${oh1.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.openhab.io</groupId>
             <artifactId>org.openhab.io.multimedia.tts.marytts</artifactId>
