@@ -1,0 +1,20 @@
+{
+  "UID": "knx:generic:1bit_switch",
+  "bridgeUID": "knx:ip:daaecf03",
+  "channels": [
+    {
+		"id": "SwitchChannel",
+		"itemType": "Switch",
+		"configuration": {
+			"OnOffType": {
+				"command": "1/1/1",
+				"listening": ["1/2/1"]
+			}
+		}
+    }
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

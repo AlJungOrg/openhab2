@@ -1,0 +1,19 @@
+{
+  "UID": "knx:generic:2byte_wohnzimmer_isttemperatur",
+  "bridgeUID": "knx:ip:77db0b43",
+  "channels": [
+    {
+		"itemType": "Number",
+		"configuration": {
+			"DecimalType": {
+				"listening": ["6/1/1"],
+				"initialize": "6/1/1"
+			}
+		}
+    }
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "UID": "knx:generic:knx_lueften_4bit",
+  "bridgeUID": "knx:ip:77db0b43",
+  "channels": [
+    {
+      "itemType": "Switch",
+      "configuration": {
+	    "OnOffType": {
+			"command": "1/3/20",
+			"listening": ["0/3/22"],
+			"initialize": "1/3/20"
+		}
+	  }
+    },
+    {
+      "itemType": "Switch",
+      "configuration": {
+	    "OnOffType": {
+			"command": "1/3/20",
+			"listening": ["0/3/22"],
+			"initialize": "1/3/20"
+		}
+	  }
+    },
+    {
+      "itemType": "Switch",
+      "configuration": {
+	    "OnOffType": {
+			"command": "1/3/20",
+			"listening": ["0/3/22"],
+			"initialize": "1/3/20"
+		}
+	  }
+    },
+    {
+      "itemType": "Switch",
+      "configuration": {
+	    "OnOffType": {
+			"command": "1/3/20",
+			"listening": ["0/3/22"],
+			"initialize": "1/3/20"
+		}
+	  }
+    }
+  ],
+  "configuration": {
+    "interval": 5,
+    "read": true
+  }
+}

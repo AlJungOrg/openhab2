@@ -1,0 +1,21 @@
+{
+  "UID": "knx:generic:1byte_lueften",
+  "bridgeUID": "knx:ip:77db0b43",
+  "channels": [
+    {
+		"itemType": "Number",
+		"configuration": {
+			"NumberType": {
+				"command": "1/1/120",
+				"listening": ["1/1/120"],
+				"dpt": "5.010",
+				"initialize": "1/1/120"
+			}
+		}
+    }
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

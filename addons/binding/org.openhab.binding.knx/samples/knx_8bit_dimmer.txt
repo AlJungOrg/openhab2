@@ -1,0 +1,28 @@
+{
+  "UID": "knx:generic:8bit_dimmer",
+  "bridgeUID": "knx:ip:daaecf03",
+  "channels": [
+    {
+		"id": "DimmerChannel",
+		"itemType": "Dimmer",
+		"configuration": {
+			"OnOffType": {
+				"command": "1/1/2",
+				"listening": ["1/2/2"]
+			},
+			"IncreaseDecreaseType": {
+				"command": "1/3/2"
+			},
+			"PercentType": {
+				"command": "1/4/2",
+				"listening": ["1/5/2"],
+				"initialize": "1/5/2"
+			}
+		}
+    }
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

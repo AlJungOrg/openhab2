@@ -1,0 +1,102 @@
+{
+	"UID": "knx:generic:knx_heizung",
+	"bridgeUID": "knx:ip:daaecf03",
+	"channels": [
+	{
+		"id": "Betriebsmodus",
+		"itemType": "Number",
+		"configuration": {
+			"DecimalType": {
+				"command": "3/1/1",
+				"initialize": "3/1/1"
+			}
+		}
+	},
+	{
+		"id": "Zwangsstellung",
+		"itemType": "Number",
+		"configuration": {
+			"DecimalType": {
+				"command": "3/2/1",
+				"initialize": "3/2/1"
+			}
+		}
+	},
+	{
+		"id": "Sollwertverschiebung",
+		"itemType": "Number",
+		"configuration": {
+			"DecimalType": {
+				"command": "3/3/1",
+				"listening": ["4/3/1"],
+				"initialize": "4/3/1"
+			}
+		}
+	},
+	{
+		"id": "StellgroesseHeizen",
+		"itemType": "Number",
+		"configuration": {
+			"DecimalType": {
+				"command": "3/4/1",
+				"listening": ["4/4/1"],
+				"initialize": "4/4/1"
+			}
+		}
+	},
+	{
+		"id": "StellgroesseKuehlen",
+		"itemType": "Number",
+		"configuration": {
+			"DecimalType": {
+				"command": "3/5/1",
+				"initialize": "3/5/1"
+			}
+		}
+	},
+	{
+		"id": "UmschHeizenKuehlen",
+		"itemType": "Switch",
+		"configuration": {
+			"OnOffType": {
+				"command": "3/6/1",
+				"initialize": "3/6/1"
+			}
+		}
+	},
+	{
+		"id": "Praesenzobjekt",
+		"itemType": "Switch",
+		"configuration": {
+			"OnOffType": {
+				"command": "3/7/0",
+				"initialize": "3/7/0"
+			}
+		}
+	},
+	{
+		"id": "Reglerstatus",
+		"itemType": "Number",
+		"configuration": {
+			"DecimalType": {
+				"listening": ["4/1/1"],
+				"initialize": "4/1/1"
+			}
+		}
+	},
+	{
+		"id": "Fensterstatus",
+		"itemType": "Switch",
+		"configuration": {
+			"OpenClosedType": {
+				"listening": ["4/5/1"],
+				"initialize": "4/5/1"
+			}
+		}
+	}
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

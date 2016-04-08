@@ -1,0 +1,20 @@
+{
+  "UID": "knx:generic:2byte_aussentemperatur",
+  "bridgeUID": "knx:ip:daaecf03",
+  "channels": [
+    {
+		"id": "TemperaturNumberChannel",
+		"itemType": "Number",
+		"configuration": {
+			"DecimalType": {
+				"listening": ["6/1/0"],
+				"initialize": "6/1/0"
+			}
+		}
+    }
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "UID": "knx:generic:discolicht_rgb",
+  "bridgeUID": "knx:ip:77db0b43",
+  "channels": [
+    {
+		"itemType": "Color",
+		"configuration": {
+			"OnOffType": {
+				"command": "1/1/120",
+				"listening": ["1/1/120"]
+			},
+			"IncreaseDecreaseType": {
+				"command": "1/2/120"
+			},
+			"PercentType": {
+				"command": "1/3/120",
+				"listening": ["1/3/120"],
+				"initialize": "1/3/120"
+			},
+			"HSBType": {
+				"command": "1/3/120,1/3/121,1/3/122",
+				"listening": ["1/3/120,1/3/121,1/3/122"],
+				"dpt": "5:010"
+			}
+		}
+    }
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

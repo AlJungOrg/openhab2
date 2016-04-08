@@ -1,0 +1,23 @@
+{
+  "UID": "knx:generic:4bit_dimmer",
+  "bridgeUID": "knx:ip:77db0b43",
+  "channels": [
+    {
+		"itemType": "Dimmer",
+		"configuration": {
+			"OnOffType": {
+				"command": "1/1/120",
+				"listening": ["1/1/120"],
+				"initialize": "1/1/120"
+			},
+			"IncreaseDecreaseType": {
+				"command": "1/2/120"
+			}
+		}
+    }
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

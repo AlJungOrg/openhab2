@@ -1,0 +1,19 @@
+{
+  "UID": "knx:generic:2byte_co2_temperatur_luftfeuchte",
+  "bridgeUID": "knx:ip:77db0b43",
+  "channels": [
+    {
+		"itemType": "Number",
+		"configuration": {
+			"NumberType": {
+				"listening": ["6/1/0"],
+				"initialize": "6/1/0"
+			}
+		}
+    }
+  ],
+  "configuration": {
+    "interval": 0,
+    "read": true
+  }
+}

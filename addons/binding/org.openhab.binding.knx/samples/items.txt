@@ -1,0 +1,67 @@
+Aussentemperatur (2byte):
+
+{
+  "groupNames": [
+    "home_group_2c7c7b4c"
+  ],
+  "name": "IstTemperaturWohnzimmer",
+  "label": "Wohnzimmer",
+  "type": "NumberItem",
+  "tags": [
+	""
+  ]
+}
+
+Wohnzimmer 2 (8bit Dimmer)
+
+{
+  "groupNames": [
+    "home_group_2c7c7b4c"
+  ],
+  "name": "Wohnzimmer2",
+  "label": "Wohnzimmer 2",
+  "type": "DimmerItem",
+  "tags": [
+	""
+  ]
+}
+
+Wohnzimmer 1 (1bit Switch)
+
+{
+  "groupNames": [
+    "home_group_2c7c7b4c"
+  ],
+  "name": "Wohnzimmer1",
+  "label": "Wohnzimmer 1",
+  "type": "SwitchItem",
+  "tags": [
+	""
+  ]
+}
+
+Rollade mit Lamelle:
+
+{
+  "groupNames": [
+    "home_group_2c7c7b4c"
+  ],
+  "name": "RolladeWohnzimmer1",
+  "label": "Rollade WZ 1",
+  "type": "RollershutterItem",
+  "tags": [
+	""
+  ]
+}
+
+{
+  "groupNames": [
+    "home_group_2c7c7b4c"
+  ],
+  "name": "LamelleWohnzimmer1",
+  "label": "Lamelle WZ 1",
+  "type": "DimmerItem",
+  "tags": [
+	""
+  ]
+}
