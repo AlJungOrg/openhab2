@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -33,7 +34,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SMAEnergyMeterDiscoveryService extends AbstractDiscoveryService {
 
-    private final static Logger logger = LoggerFactory.getLogger(SMAEnergyMeterDiscoveryService.class);
+    private final Logger logger = LoggerFactory.getLogger(SMAEnergyMeterDiscoveryService.class);
 
     public SMAEnergyMeterDiscoveryService() {
         super(SUPPORTED_THING_TYPES_UIDS, 15, true);
@@ -78,13 +79,13 @@ public class SMAEnergyMeterDiscoveryService extends AbstractDiscoveryService {
         properties.put(Thing.PROPERTY_VENDOR, "SMA");
         properties.put(Thing.PROPERTY_SERIAL_NUMBER, energyMeter.getSerialNumber());
         ThingUID uid = new ThingUID(THING_TYPE_ENERGY_METER, energyMeter.getSerialNumber());
-        if (uid != null) {
-            DiscoveryResult result = DiscoveryResultBuilder.create(uid).withProperties(properties)
-                    .withLabel("SMA Energy Meter").build();
-            thingDiscovered(result);
+        DiscoveryResult result = DiscoveryResultBuilder.create(uid)
+                .withProperties(properties)
+                .withLabel("SMA Energy Meter")
+                .build();
+        thingDiscovered(result);
 
-            logger.debug("Thing discovered '{}'", result);
-        }
+        logger.debug("Thing discovered '{}'", result);
     }
 
 }

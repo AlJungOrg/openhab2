@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,8 +35,6 @@ import org.slf4j.LoggerFactory;
  */
 @Path(Config.COMETVISU_BACKEND_ALIAS + "/" + Config.COMETVISU_BACKEND_LOGIN_ALIAS)
 public class LoginResource implements RESTResource {
-    private static final Logger logger = LoggerFactory.getLogger(LoginResource.class);
-
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
     public Response getLogin(@Context UriInfo uriInfo, @Context HttpHeaders headers, @QueryParam("u") String user,
@@ -50,7 +49,7 @@ public class LoginResource implements RESTResource {
         if (uriInfo.getBaseUri().getPort() != 80) {
             serverHost += ":" + uriInfo.getBaseUri().getPort();
         }
-        String host = serverHost.compareToIgnoreCase(origin) == 0 ? "" : serverHost;
+        String host = origin == null || serverHost.compareToIgnoreCase(origin) == 0 ? "" : serverHost;
 
         conf.baseURL = host + "/rest/" + Config.COMETVISU_BACKEND_ALIAS + "/";
         conf.resources = res;

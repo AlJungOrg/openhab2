@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +27,7 @@ import org.eclipse.smarthome.model.sitemap.SitemapProvider;
 import org.eclipse.smarthome.ui.icon.IconProvider;
 import org.eclipse.smarthome.ui.items.ItemUIRegistry;
 import org.openhab.ui.cometvisu.internal.Config;
+import org.openhab.ui.cometvisu.php.PHProvider;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.http.HttpService;
@@ -41,7 +43,7 @@ import org.slf4j.LoggerFactory;
  */
 public class CometVisuApp {
 
-    private static final Logger logger = LoggerFactory.getLogger(CometVisuApp.class);
+    private final Logger logger = LoggerFactory.getLogger(CometVisuApp.class);
 
     protected HttpService httpService;
 
@@ -55,7 +57,11 @@ public class CometVisuApp {
 
     private EventPublisher eventPublisher;
 
-    static protected Map<String, QueryablePersistenceService> persistenceServices = new HashMap<String, QueryablePersistenceService>();
+    private CometVisuServlet servlet;
+
+    private PHProvider phpProvider;
+
+    protected static Map<String, QueryablePersistenceService> persistenceServices = new HashMap<>();
 
     protected void setEventPublisher(EventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
@@ -70,15 +76,16 @@ public class CometVisuApp {
     }
 
     public void addPersistenceService(PersistenceService service) {
-        if (service instanceof QueryablePersistenceService)
-            persistenceServices.put(service.getName(), (QueryablePersistenceService) service);
+        if (service instanceof QueryablePersistenceService) {
+            persistenceServices.put(service.getId(), (QueryablePersistenceService) service);
+        }
     }
 
     public void removePersistenceService(PersistenceService service) {
-        persistenceServices.remove(service.getName());
+        persistenceServices.remove(service.getId());
     }
 
-    static public Map<String, QueryablePersistenceService> getPersistenceServices() {
+    public static Map<String, QueryablePersistenceService> getPersistenceServices() {
         return persistenceServices;
     }
 
@@ -138,6 +145,24 @@ public class CometVisuApp {
         this.httpService = null;
     }
 
+    public void setPHProvider(PHProvider prov) {
+        this.phpProvider = prov;
+        if (servlet != null) {
+            servlet.setPHProvider(prov);
+        }
+    }
+
+    public PHProvider getPHProvider() {
+        return this.phpProvider;
+    }
+
+    public void unsetPHProvider() {
+        this.phpProvider = null;
+        if (servlet != null) {
+            servlet.unsetPHProvider();
+        }
+    }
+
     private void readConfiguration(final Map<String, Object> properties) {
         if (properties != null) {
             if (properties.get(Config.COMETVISU_WEBFOLDER_PROPERTY) != null) {
@@ -185,15 +210,17 @@ public class CometVisuApp {
     private void registerServlet() {
         // As the alias is user configurable, we have to check if it has a
         // trailing slash but no leading slash
-        if (!Config.COMETVISU_WEBAPP_ALIAS.startsWith("/"))
+        if (!Config.COMETVISU_WEBAPP_ALIAS.startsWith("/")) {
             Config.COMETVISU_WEBAPP_ALIAS = "/" + Config.COMETVISU_WEBAPP_ALIAS;
+        }
 
-        if (Config.COMETVISU_WEBAPP_ALIAS.endsWith("/"))
+        if (Config.COMETVISU_WEBAPP_ALIAS.endsWith("/")) {
             Config.COMETVISU_WEBAPP_ALIAS = Config.COMETVISU_WEBAPP_ALIAS.substring(0,
                     Config.COMETVISU_WEBAPP_ALIAS.length() - 1);
+        }
 
         Dictionary<String, String> servletParams = new Hashtable<String, String>();
-        CometVisuServlet servlet = new CometVisuServlet(Config.COMETVISU_WEBFOLDER, this);
+        servlet = new CometVisuServlet(Config.COMETVISU_WEBFOLDER, this);
         try {
             httpService.registerServlet(Config.COMETVISU_WEBAPP_ALIAS, servlet, servletParams, null);
         } catch (ServletException e) {
@@ -216,8 +243,9 @@ public class CometVisuApp {
      */
     protected void modified(Map<String, Object> configProps) throws ConfigurationException {
         logger.info("updated({})", configProps);
-        if (configProps == null)
+        if (configProps == null) {
             return;
+        }
         if (configProps.containsKey(Config.COMETVISU_WEBFOLDER_PROPERTY)
                 || configProps.containsKey(Config.COMETVISU_WEBAPP_ALIAS_PROPERTY)) {
             unregisterServlet();

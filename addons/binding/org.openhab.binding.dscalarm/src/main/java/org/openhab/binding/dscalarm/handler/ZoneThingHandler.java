@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -18,12 +18,11 @@ import org.eclipse.smarthome.core.library.types.StringType;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.types.Command;
+import org.eclipse.smarthome.core.types.RefreshType;
 import org.openhab.binding.dscalarm.internal.DSCAlarmCode;
 import org.openhab.binding.dscalarm.internal.DSCAlarmEvent;
 import org.openhab.binding.dscalarm.internal.DSCAlarmMessage;
 import org.openhab.binding.dscalarm.internal.DSCAlarmMessage.DSCAlarmMessageInfoType;
-import org.openhab.binding.dscalarm.internal.DSCAlarmProperties.StateType;
-import org.openhab.binding.dscalarm.internal.DSCAlarmProperties.TriggerType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,11 +49,9 @@ public class ZoneThingHandler extends DSCAlarmBaseThingHandler {
      * {@inheritDoc}
      */
     @Override
-    public void updateChannel(ChannelUID channelUID) {
+    public void updateChannel(ChannelUID channelUID, int state, String description) {
         logger.debug("updateChannel(): Zone Channel UID: {}", channelUID);
 
-        int state;
-        String strStatus = "";
         boolean trigger;
         OnOffType onOffType;
         OpenClosedType openClosedType;
@@ -62,36 +59,33 @@ public class ZoneThingHandler extends DSCAlarmBaseThingHandler {
         if (channelUID != null) {
             switch (channelUID.getId()) {
                 case ZONE_MESSAGE:
-                    strStatus = properties.getZoneMessage();
-                    updateState(channelUID, new StringType(strStatus));
+                    updateState(channelUID, new StringType(description));
                     break;
                 case ZONE_STATUS:
-                    state = properties.getState(StateType.GENERAL_STATE);
                     openClosedType = (state > 0) ? OpenClosedType.OPEN : OpenClosedType.CLOSED;
                     updateState(channelUID, openClosedType);
                     break;
                 case ZONE_BYPASS_MODE:
-                    state = properties.getState(StateType.ARM_STATE);
                     onOffType = (state > 0) ? OnOffType.ON : OnOffType.OFF;
                     updateState(channelUID, onOffType);
                     break;
                 case ZONE_IN_ALARM:
-                    trigger = properties.getTrigger(TriggerType.ALARMED);
+                    trigger = state != 0;
                     onOffType = trigger ? OnOffType.ON : OnOffType.OFF;
                     updateState(channelUID, onOffType);
                     break;
                 case ZONE_TAMPER:
-                    trigger = properties.getTrigger(TriggerType.TAMPERED);
+                    trigger = state != 0;
                     onOffType = trigger ? OnOffType.ON : OnOffType.OFF;
                     updateState(channelUID, onOffType);
                     break;
                 case ZONE_FAULT:
-                    trigger = properties.getTrigger(TriggerType.FAULTED);
+                    trigger = state != 0;
                     onOffType = trigger ? OnOffType.ON : OnOffType.OFF;
                     updateState(channelUID, onOffType);
                     break;
                 case ZONE_TRIPPED:
-                    trigger = properties.getTrigger(TriggerType.TRIPPED);
+                    trigger = state != 0;
                     onOffType = trigger ? OnOffType.ON : OnOffType.OFF;
                     updateState(channelUID, onOffType);
                     break;
@@ -106,67 +100,25 @@ public class ZoneThingHandler extends DSCAlarmBaseThingHandler {
      * {@inheritDoc}
      */
     @Override
-    public void updateProperties(ChannelUID channelUID, int state, String description) {
-        logger.debug("updateProperties(): Panel Channel UID: {}", channelUID);
-
-        boolean trigger = state != 0 ? true : false;
-
-        if (channelUID != null) {
-            switch (channelUID.getId()) {
-                case ZONE_MESSAGE:
-                    properties.setZoneMessage(description);
-                    break;
-                case ZONE_STATUS:
-                    properties.setState(StateType.GENERAL_STATE, state, description);
-                    break;
-                case ZONE_BYPASS_MODE:
-                    properties.setState(StateType.ARM_STATE, state, description);
-                    break;
-                case ZONE_IN_ALARM:
-                    properties.setState(StateType.ALARM_STATE, state, description);
-                    properties.setTrigger(TriggerType.ALARMED, trigger);
-                    break;
-                case ZONE_TAMPER:
-                    properties.setState(StateType.TAMPER_STATE, state, description);
-                    properties.setTrigger(TriggerType.TAMPERED, trigger);
-                    break;
-                case ZONE_FAULT:
-                    properties.setState(StateType.FAULT_STATE, state, description);
-                    properties.setTrigger(TriggerType.FAULTED, trigger);
-                    break;
-                case ZONE_TRIPPED:
-                    properties.setTrigger(TriggerType.TRIPPED, trigger);
-                    break;
-                default:
-                    logger.debug("updateProperties(): Zone property not updated.");
-                    break;
-            }
-        }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public void handleCommand(ChannelUID channelUID, Command command) {
-        if (dscAlarmBridgeHandler == null) {
-            logger.warn("DSC Alarm bridge handler not available. Cannot handle command without bridge.");
+
+        logger.debug("handleCommand(): Command Received - {} {}.", channelUID, command);
+
+        if (command instanceof RefreshType) {
             return;
         }
 
-        if (dscAlarmBridgeHandler.isConnected()) {
-            switch (channelUID.getId()) {
-                case ZONE_BYPASS_MODE:
-                    if (command == OnOffType.OFF) {
-                        String data = String.valueOf(getPartitionNumber()) + "*1" + String.format("%02d", getZoneNumber()) + "#";
-                        dscAlarmBridgeHandler.sendCommand(DSCAlarmCode.KeySequence, data);
-                    } else if (command == OnOffType.ON) {
-                        String data = String.valueOf(getPartitionNumber()) + "*1" + String.format("%02d", getZoneNumber()) + "#";
-                        dscAlarmBridgeHandler.sendCommand(DSCAlarmCode.KeySequence, data);
-                    }
-                    break;
-                default:
-                    break;
+        if (dscAlarmBridgeHandler != null && dscAlarmBridgeHandler.isConnected()
+                && channelUID.getId() == ZONE_BYPASS_MODE) {
+
+            if (command == OnOffType.OFF) {
+                String data = String.valueOf(getPartitionNumber()) + "*1" + String.format("%02d", getZoneNumber())
+                        + "#";
+                dscAlarmBridgeHandler.sendCommand(DSCAlarmCode.KeySequence, data);
+            } else if (command == OnOffType.ON) {
+                String data = String.valueOf(getPartitionNumber()) + "*1" + String.format("%02d", getZoneNumber())
+                        + "#";
+                dscAlarmBridgeHandler.sendCommand(DSCAlarmCode.KeySequence, data);
             }
         }
     }
@@ -192,20 +144,20 @@ public class ZoneThingHandler extends DSCAlarmBaseThingHandler {
                 DSCAlarmMessage dscAlarmMessage = dscAlarmEvent.getDSCAlarmMessage();
 
                 ChannelUID channelUID = null;
-                DSCAlarmCode apiCode = DSCAlarmCode.getDSCAlarmCodeValue(dscAlarmMessage.getMessageInfo(DSCAlarmMessageInfoType.CODE));
-                logger.debug("dscAlarmEventRecieved(): Thing - {}   Command - {}", thing.getUID(), apiCode);
+                DSCAlarmCode dscAlarmCode = DSCAlarmCode
+                        .getDSCAlarmCodeValue(dscAlarmMessage.getMessageInfo(DSCAlarmMessageInfoType.CODE));
+                logger.debug("dscAlarmEventRecieved(): Thing - {}   Command - {}", thing.getUID(), dscAlarmCode);
 
                 int state = 0;
                 String status = "";
 
-                switch (apiCode) {
+                switch (dscAlarmCode) {
                     case ZoneAlarm: /* 601 */
                         state = 1;
                         status = dscAlarmMessage.getMessageInfo(DSCAlarmMessageInfoType.DESCRIPTION);
                     case ZoneAlarmRestore: /* 602 */
                         channelUID = new ChannelUID(getThing().getUID(), ZONE_IN_ALARM);
-                        updateProperties(channelUID, state, "");
-                        updateChannel(channelUID);
+                        updateChannel(channelUID, state, "");
                         zoneMessage(status);
                         break;
                     case ZoneTamper: /* 603 */
@@ -213,8 +165,7 @@ public class ZoneThingHandler extends DSCAlarmBaseThingHandler {
                         status = dscAlarmMessage.getMessageInfo(DSCAlarmMessageInfoType.DESCRIPTION);
                     case ZoneTamperRestore: /* 604 */
                         channelUID = new ChannelUID(getThing().getUID(), ZONE_TAMPER);
-                        updateProperties(channelUID, state, "");
-                        updateChannel(channelUID);
+                        updateChannel(channelUID, state, "");
                         zoneMessage(status);
                         break;
                     case ZoneFault: /* 605 */
@@ -222,8 +173,7 @@ public class ZoneThingHandler extends DSCAlarmBaseThingHandler {
                         status = dscAlarmMessage.getMessageInfo(DSCAlarmMessageInfoType.DESCRIPTION);
                     case ZoneFaultRestore: /* 606 */
                         channelUID = new ChannelUID(getThing().getUID(), ZONE_FAULT);
-                        updateProperties(channelUID, state, "");
-                        updateChannel(channelUID);
+                        updateChannel(channelUID, state, "");
                         zoneMessage(status);
                         break;
                     case ZoneOpen: /* 609 */
@@ -231,12 +181,10 @@ public class ZoneThingHandler extends DSCAlarmBaseThingHandler {
                         status = dscAlarmMessage.getMessageInfo(DSCAlarmMessageInfoType.DESCRIPTION);
                     case ZoneRestored: /* 610 */
                         channelUID = new ChannelUID(getThing().getUID(), ZONE_TRIPPED);
-                        updateProperties(channelUID, state, "");
-                        updateChannel(channelUID);
+                        updateChannel(channelUID, state, "");
 
                         channelUID = new ChannelUID(getThing().getUID(), ZONE_STATUS);
-                        updateProperties(channelUID, state, "");
-                        updateChannel(channelUID);
+                        updateChannel(channelUID, state, "");
                         zoneMessage(status);
                         break;
                     default:

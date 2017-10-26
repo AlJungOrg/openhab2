@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -110,8 +111,8 @@ public class ConfigHelper {
         this.app = app;
         this.sitemapName = sitemapName;
 
-        logger.info("icon mapping enabled: " + Config.iconConfig.get(Config.COMETVISU_ICON_ENABLE_MAPPING_PROPERTY)
-                + ", " + Config.iconMappings.size() + " known mappings");
+        logger.info("icon mapping enabled: {}, {} known mappings",
+                Config.iconConfig.get(Config.COMETVISU_ICON_ENABLE_MAPPING_PROPERTY), Config.iconMappings.size());
 
         // this.initIconMapping();
         this.initBasicMappings();
@@ -255,8 +256,9 @@ public class ConfigHelper {
         for (String value : map.keySet()) {
             Entry entry = new Entry();
             entry.setValue(value);
-            if (value == "0")
+            if (value == "0") {
                 entry.setDefault(true);
+            }
             entry.getContent().add(map.get(value));
             mapping.getEntry().add(entry);
         }
@@ -294,8 +296,9 @@ public class ConfigHelper {
     private Icon createIcon(String name, String color) {
         Icon icon = new Icon();
         icon.setName(name);
-        if (color != null && !color.isEmpty())
+        if (color != null && !color.isEmpty()) {
             icon.setColor(color);
+        }
         return icon;
     }
 
@@ -353,8 +356,9 @@ public class ConfigHelper {
      */
     @SuppressWarnings("unchecked")
     public Address addAddress(Object element, Item item, Transform transform, String variant) {
-        if (element == null || item == null)
+        if (element == null || item == null) {
             return null;
+        }
         try {
             Method getAddress = element.getClass().getMethod("getAddress");
             Address address = getAddress(item, transform, variant);
@@ -362,14 +366,8 @@ public class ConfigHelper {
                 ((List<Address>) getAddress.invoke(element)).add(address);
                 return address;
             }
-        } catch (NoSuchMethodException | SecurityException e) {
-            logger.error(e.getMessage());
-        } catch (IllegalAccessException e) {
-            logger.error(e.getMessage());
-        } catch (IllegalArgumentException e) {
-            logger.error(e.getMessage());
-        } catch (InvocationTargetException e) {
-            logger.error(e.getMessage());
+        } catch (Exception e) {
+            logger.error("{}", e.getMessage());
         }
         return null;
     }
@@ -379,8 +377,9 @@ public class ConfigHelper {
     }
 
     public Address getAddress(Item item, Transform transform, String variant) {
-        if (item == null)
+        if (item == null) {
             return null;
+        }
         Address address = new Address();
         address.setTransform("OH:" + transform.toString().toLowerCase());
         address.setValue(item.getName());
@@ -399,8 +398,9 @@ public class ConfigHelper {
     }
 
     public Label addLabel(Object element, String name, String iconName) {
-        if (element == null)
+        if (element == null) {
             return null;
+        }
         try {
             Method setter = element.getClass().getMethod("setLabel", Label.class);
             if (setter != null) {
@@ -415,13 +415,13 @@ public class ConfigHelper {
                 return label;
             }
         } catch (NoSuchMethodException | SecurityException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         } catch (IllegalAccessException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         } catch (InvocationTargetException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         }
         return null;
     }
@@ -454,13 +454,13 @@ public class ConfigHelper {
                 setter.invoke(element, mapping.getName());
                 return mapping;
             } catch (NoSuchMethodException | SecurityException e) {
-                logger.error(e.getMessage());
+                logger.error("{}", e.getMessage());
             } catch (IllegalAccessException e) {
-                logger.error(e.getMessage());
+                logger.error("{}", e.getMessage());
             } catch (IllegalArgumentException e) {
-                logger.error(e.getMessage());
+                logger.error("{}", e.getMessage());
             } catch (InvocationTargetException e) {
-                logger.error(e.getMessage());
+                logger.error("{}", e.getMessage());
             }
         }
         return null;
@@ -631,11 +631,11 @@ public class ConfigHelper {
         } catch (NoSuchMethodException | SecurityException e) {
             // do nothing, normal behaviour for item that have no mappingdefined
         } catch (IllegalAccessException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         } catch (InvocationTargetException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         }
         return mapping;
     }
@@ -731,8 +731,9 @@ public class ConfigHelper {
                     }
                 }
             }
-            if (found)
+            if (found) {
                 break;
+            }
 
         }
         if (!found) {
@@ -801,8 +802,9 @@ public class ConfigHelper {
     }
 
     public String getExistingIconName(String ohIcon) {
-        if (ohIcon == null || ohIcon.isEmpty())
+        if (ohIcon == null || ohIcon.isEmpty()) {
             return null;
+        }
         if (hasIconMapping(ohIcon)) {
             return getIconMapping(ohIcon);
         } else {
@@ -887,8 +889,9 @@ public class ConfigHelper {
                     break;
                 }
             }
-            if (!found)
+            if (!found) {
                 icons.getIconDefinition().add(iconDef);
+            }
         }
 
         logger.trace("adding icon-def '{}' url '{}'", iconDef.getName(), iconDef.getUri());
@@ -955,13 +958,13 @@ public class ConfigHelper {
                 method.invoke(elem, format);
             }
         } catch (NoSuchMethodException | SecurityException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         } catch (IllegalAccessException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         } catch (InvocationTargetException e) {
-            logger.error(e.getMessage());
+            logger.error("{}", e.getMessage());
         }
 
     }
@@ -992,8 +995,9 @@ public class ConfigHelper {
                 Page firstChildPage = null;
                 for (JAXBElement<?> ge : p.getPageOrGroupOrNavbar()) {
                     if (ge.getValue() instanceof Page) {
-                        if (firstChildPage == null)
+                        if (firstChildPage == null) {
                             firstChildPage = (Page) ge.getValue();
+                        }
                         if (((Page) ge.getValue()).isVisible() == null
                                 || ((Page) ge.getValue()).isVisible().booleanValue() == true) {
                             visible++;
@@ -1024,12 +1028,14 @@ public class ConfigHelper {
                 // check for visible elements
                 int visible = 0;
                 for (JAXBElement<?> ge : group.getPageOrGroupOrLine()) {
-                    if (ge == null || ge.getValue() == null)
+                    if (ge == null || ge.getValue() == null) {
                         continue;
+                    }
                     if (ge.getValue() instanceof Page) {
                         Page p = (Page) ge.getValue();
-                        if (p.isVisible() == null || p.isVisible().booleanValue() == true)
+                        if (p.isVisible() == null || p.isVisible().booleanValue() == true) {
                             visible++;
+                        }
                     } else {
                         // all other elements are visible
                         visible++;
@@ -1037,8 +1043,9 @@ public class ConfigHelper {
                 }
 
                 if (visible == 0) {
-                    if (logger.isTraceEnabled())
+                    if (logger.isTraceEnabled()) {
                         logger.trace("group '{}' has no visible elements", group.getName());
+                    }
                     // group is empty move all pages to the groups parent page
                     // and delete the group
                     for (JAXBElement<?> ge : group.getPageOrGroupOrLine()) {
@@ -1049,10 +1056,12 @@ public class ConfigHelper {
                 cleanup(group, pages);
             }
         }
-        if (childsToAdd.size() > 0 && page instanceof Page)
-            if (logger.isTraceEnabled())
+        if (childsToAdd.size() > 0 && page instanceof Page) {
+            if (logger.isTraceEnabled()) {
                 logger.trace("there are '{}' children to be added to '{}'", childsToAdd.size(),
                         ((Page) page).getName());
+            }
+        }
         for (JAXBElement<?> element : childsToAdd) {
             if (page instanceof Page) {
                 ((Page) page).getPageOrGroupOrNavbar().add(element);
@@ -1062,12 +1071,14 @@ public class ConfigHelper {
         }
         for (JAXBElement<?> element : groupsToDelete) {
             if (page instanceof Page) {
-                if (logger.isTraceEnabled())
+                if (logger.isTraceEnabled()) {
                     logger.trace("removing group '{}' from '{}'", element, ((Page) page).getName());
+                }
                 ((Page) page).getPageOrGroupOrNavbar().remove(element);
             } else if (page instanceof Group) {
-                if (logger.isTraceEnabled())
+                if (logger.isTraceEnabled()) {
                     logger.trace("removing group '{}' from '{}'", element, ((Group) page).getName());
+                }
                 ((Group) page).getPageOrGroupOrLine().remove(element);
             }
         }

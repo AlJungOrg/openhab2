@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,6 +8,8 @@
  */
 package org.openhab.binding.dscalarm.handler;
 
+import static org.openhab.binding.dscalarm.DSCAlarmBindingConstants.PANEL_MESSAGE;
+
 import java.util.EventObject;
 import java.util.List;
 
@@ -15,13 +17,17 @@ import org.eclipse.smarthome.core.thing.Bridge;
 import org.eclipse.smarthome.core.thing.Channel;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
+import org.eclipse.smarthome.core.thing.ThingStatus;
+import org.eclipse.smarthome.core.thing.ThingStatusInfo;
 import org.eclipse.smarthome.core.thing.binding.BaseThingHandler;
 import org.eclipse.smarthome.core.thing.binding.ThingHandler;
 import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.dscalarm.config.DSCAlarmPanelConfiguration;
 import org.openhab.binding.dscalarm.config.DSCAlarmPartitionConfiguration;
 import org.openhab.binding.dscalarm.config.DSCAlarmZoneConfiguration;
-import org.openhab.binding.dscalarm.internal.DSCAlarmProperties;
+import org.openhab.binding.dscalarm.internal.DSCAlarmCode;
+import org.openhab.binding.dscalarm.internal.DSCAlarmMessage;
+import org.openhab.binding.dscalarm.internal.DSCAlarmMessage.DSCAlarmMessageInfoType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,10 +47,8 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
     private DSCAlarmThingType dscAlarmThingType = null;
 
     /** DSC Alarm Properties. */
-    public DSCAlarmProperties properties = null;
 
-    /** This refresh status. */
-    private boolean thingRefreshed = false;
+    private boolean thingHandlerInitialized = false;
 
     /** User Code for some DSC Alarm commands. */
     private String userCode = null;
@@ -72,9 +76,13 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
      */
     @Override
     public void initialize() {
-        logger.debug("Initializing DSC Alarm Thing handler - Thing Type: {}; Thing ID: {}.", dscAlarmThingType, this.getThing().getUID());
+        logger.debug("Initializing DSC Alarm Thing handler - Thing Type: {}; Thing ID: {}.", dscAlarmThingType,
+                this.getThing().getUID());
 
         getConfiguration(dscAlarmThingType);
+
+        // set the Thing offline for now
+        updateStatus(ThingStatus.OFFLINE);
     }
 
     /**
@@ -84,35 +92,44 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
     public void dispose() {
         logger.debug("Thing {} disposed.", getThing().getUID());
 
-        this.setThingRefreshed(false);
+        this.setThingHandlerInitialized(false);
+
         super.dispose();
     }
 
     /**
-     * Method to Refresh Thing Handler.
+     * Method to Initialize Thing Handler.
      */
-    public void refreshThing() {
+    public void initializeThingHandler() {
 
         if (getDSCAlarmBridgeHandler() != null) {
-            logger.debug("refreshThing(): Bridge '{}' Found for Thing '{}'!", dscAlarmBridgeHandler.getThing().getUID(), this.getThing().getUID());
 
-            Thing thing = getThing();
-            List<Channel> channels = thing.getChannels();
-            logger.debug("refreshThing(): Refreshing Thing - {}", thing.getUID());
+            if (getThing().getStatus().equals(ThingStatus.ONLINE)) {
 
-            this.properties = new DSCAlarmProperties();
+                Thing thing = getThing();
+                List<Channel> channels = thing.getChannels();
+                logger.debug("initializeThingHandler(): Initialize Thing Handler - {}", thing.getUID());
 
-            for (Channel channel : channels) {
-                updateChannel(channel.getUID());
+                for (Channel channel : channels) {
+                    if (channel.getAcceptedItemType().equals("DateTime")) {
+                        updateChannel(channel.getUID(), 0, "0000010100");
+                    } else {
+                        updateChannel(channel.getUID(), 0, "");
+                    }
+                }
+
+                if (dscAlarmThingType.equals(DSCAlarmThingType.PANEL)) {
+                    dscAlarmBridgeHandler.setUserCode(getUserCode());
+                }
+
+                this.setThingHandlerInitialized(true);
+
+                logger.debug("initializeThingHandler(): Thing Handler Initialized - {}", thing.getUID());
+            } else {
+                logger.debug("initializeThingHandler(): Thing '{}' Unable To Initialize Thing Handler!: Status - {}",
+                        thing.getUID(), thing.getStatus());
             }
-
-            if (dscAlarmThingType.equals(DSCAlarmThingType.PANEL)) {
-                dscAlarmBridgeHandler.setUserCode(getUserCode());
-            }
-
-            this.setThingRefreshed(true);
         }
-        logger.debug("refreshThing(): Thing Refreshed - {}", thing.getUID());
     }
 
     /**
@@ -149,8 +166,10 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
      * Method to Update a Channel
      *
      * @param channel
+     * @param state
+     * @param description
      */
-    public abstract void updateChannel(ChannelUID channel);
+    public abstract void updateChannel(ChannelUID channel, int state, String description);
 
     /**
      * Method to Update Device Properties.
@@ -159,7 +178,8 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
      * @param state
      * @param description
      */
-    public abstract void updateProperties(ChannelUID channelUID, int state, String description);
+    // public abstract void updateProperties(ChannelUID channelUID, int state,
+    // String description);
 
     /**
      * Receives DSC Alarm Events from the bridge.
@@ -173,21 +193,18 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
     public void handleCommand(ChannelUID channelUID, Command command) {
     }
 
-    public void onBridgeConnected(DSCAlarmBaseBridgeHandler bridge) {
-        logger.debug("onBridgeConnected(): Bridge '{}' is connected", bridge.getThing().getUID());
+    @Override
+    public void bridgeStatusChanged(ThingStatusInfo bridgeStatusInfo) {
 
-        if (bridge.getThing().getUID().equals(getThing().getBridgeUID())) {
-            updateStatus(bridge.getThing().getStatus());
-            refreshThing();
+        if (bridgeStatusInfo.getStatus().equals(ThingStatus.ONLINE)) {
+            updateStatus(bridgeStatusInfo.getStatus());
+            this.initializeThingHandler();
+        } else {
+            this.setThingHandlerInitialized(false);
         }
-    }
 
-    public void onBridgeDisconnected(DSCAlarmBaseBridgeHandler bridge) {
-        logger.debug("onBridgeDisconnected(): Bridge '{}' disconnected", bridge.getThing().getUID());
-
-        if (bridge.getThing().getUID().equals(getThing().getBridgeUID())) {
-            this.setThingRefreshed(false);
-        }
+        logger.debug("bridgeStatusChanged(): Bridge Status: '{}' - Thing '{}' Status: '{}'!", bridgeStatusInfo,
+                getThing().getUID(), getThing().getStatus());
     }
 
     /**
@@ -204,7 +221,8 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
                 setSuppressAcknowledgementMsgs(panelConfiguration.suppressAcknowledgementMsgs);
                 break;
             case PARTITION:
-                DSCAlarmPartitionConfiguration partitionConfiguration = getConfigAs(DSCAlarmPartitionConfiguration.class);
+                DSCAlarmPartitionConfiguration partitionConfiguration = getConfigAs(
+                        DSCAlarmPartitionConfiguration.class);
                 setPartitionNumber(partitionConfiguration.partitionNumber.intValue());
                 break;
             case ZONE:
@@ -338,8 +356,8 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
      *
      * @return thingRefresh
      */
-    public boolean isThingRefreshed() {
-        return thingRefreshed;
+    public boolean isThingHandlerInitialized() {
+        return thingHandlerInitialized;
     }
 
     /**
@@ -347,7 +365,28 @@ public abstract class DSCAlarmBaseThingHandler extends BaseThingHandler {
      *
      * @param deviceInitialized
      */
-    public void setThingRefreshed(boolean refreshed) {
-        this.thingRefreshed = refreshed;
+    public void setThingHandlerInitialized(boolean refreshed) {
+        this.thingHandlerInitialized = refreshed;
     }
+
+    /**
+     * Method to set the panel message.
+     *
+     * @param dscAlarmMessage
+     */
+    public void setPanelMessage(DSCAlarmMessage dscAlarmMessage) {
+        ChannelUID channelUID = new ChannelUID(getThing().getUID(), PANEL_MESSAGE);
+        String message = dscAlarmMessage.getMessageInfo(DSCAlarmMessageInfoType.DESCRIPTION);
+        DSCAlarmCode dscAlarmCode = DSCAlarmCode
+                .getDSCAlarmCodeValue(dscAlarmMessage.getMessageInfo(DSCAlarmMessageInfoType.CODE));
+
+        if ((dscAlarmCode == DSCAlarmCode.CommandAcknowledge || dscAlarmCode == DSCAlarmCode.TimeDateBroadcast)
+                && getSuppressAcknowledgementMsgs()) {
+            return;
+        } else {
+            updateChannel(channelUID, 0, message);
+            logger.debug("setPanelMessage(): Panel Message Set to - {}", message);
+        }
+    }
+
 }

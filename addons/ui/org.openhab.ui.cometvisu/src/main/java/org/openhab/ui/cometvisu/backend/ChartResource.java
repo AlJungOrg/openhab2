@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -62,14 +63,14 @@ import org.slf4j.LoggerFactory;
  */
 @Path(Config.COMETVISU_BACKEND_ALIAS + "/" + Config.COMETVISU_BACKEND_CHART_ALIAS)
 public class ChartResource implements RESTResource {
-    private static final Logger logger = LoggerFactory.getLogger(ChartResource.class);
+    private final Logger logger = LoggerFactory.getLogger(ChartResource.class);
 
     // pattern RRDTool uses to format doubles in XML files
     static final String PATTERN = "0.0000000000E00";
 
     static final DecimalFormat df;
 
-    protected final static String RRD_FOLDER = org.eclipse.smarthome.config.core.ConfigConstants.getUserDataFolder()
+    protected static final String RRD_FOLDER = org.eclipse.smarthome.config.core.ConfigConstants.getUserDataFolder()
             + File.separator + "persistence" + File.separator + "rrd4j";
 
     static {
@@ -78,7 +79,7 @@ public class ChartResource implements RESTResource {
         // df.setPositivePrefix("+");
     }
 
-    static protected Map<String, QueryablePersistenceService> persistenceServices = new HashMap<String, QueryablePersistenceService>();
+    protected static Map<String, QueryablePersistenceService> persistenceServices = new HashMap<String, QueryablePersistenceService>();
 
     private ItemRegistry itemRegistry;
 
@@ -86,15 +87,16 @@ public class ChartResource implements RESTResource {
     private UriInfo uriInfo;
 
     public void addPersistenceService(PersistenceService service) {
-        if (service instanceof QueryablePersistenceService)
-            persistenceServices.put(service.getName(), (QueryablePersistenceService) service);
+        if (service instanceof QueryablePersistenceService) {
+            persistenceServices.put(service.getId(), (QueryablePersistenceService) service);
+        }
     }
 
     public void removePersistenceService(PersistenceService service) {
-        persistenceServices.remove(service.getName());
+        persistenceServices.remove(service.getId());
     }
 
-    static public Map<String, QueryablePersistenceService> getPersistenceServices() {
+    public static Map<String, QueryablePersistenceService> getPersistenceServices() {
         return persistenceServices;
     }
 
@@ -111,8 +113,9 @@ public class ChartResource implements RESTResource {
     public Response getChartSeries(@Context HttpHeaders headers, @QueryParam("rrd") String itemName,
             @QueryParam("ds") String consFunction, @QueryParam("start") String start, @QueryParam("end") String end,
             @QueryParam("res") long resolution) {
-        if (logger.isDebugEnabled())
+        if (logger.isDebugEnabled()) {
             logger.debug("Received GET request at '{}' for rrd '{}'.", uriInfo.getPath(), itemName);
+        }
         String responseType = MediaType.APPLICATION_JSON;
 
         // RRD specific: no equivalent in PersistenceService known
@@ -126,8 +129,9 @@ public class ChartResource implements RESTResource {
         Date endTime = new Date();
         endTime.setTime(times[1] * 1000L);
 
-        if (itemName.endsWith(".rrd"))
+        if (itemName.endsWith(".rrd")) {
             itemName = itemName.substring(0, itemName.length() - 4);
+        }
         String[] parts = itemName.split(":");
         String service = "rrd4j";
 
@@ -154,7 +158,7 @@ public class ChartResource implements RESTResource {
                 }
             }
             Object data = null;
-            if (persistenceService.getName().equals("rrd4j")) {
+            if (persistenceService.getId().equals("rrd4j")) {
                 data = getRrdSeries(persistenceService, item, consilidationFunction, startTime, endTime, resolution);
             } else {
                 data = getPersistenceSeries(persistenceService, item, startTime, endTime, resolution);
@@ -194,7 +198,7 @@ public class ChartResource implements RESTResource {
                 data.put(historicItem.getTimestamp().getTime(), vals);
             }
         }
-        logger.debug("'{}' querying item '{}' from '{}' to '{}' => '{}' results", persistenceService.getName(),
+        logger.debug("'{}' querying item '{}' from '{}' to '{}' => '{}' results", persistenceService.getId(),
                 filter.getItemName(), filter.getBeginDate(), filter.getEndDate(), dataCounter);
         return convertToRrd(data);
     }
@@ -233,15 +237,17 @@ public class ChartResource implements RESTResource {
             logger.debug("no rrd file found '{}'", (RRD_FOLDER + File.separator + item.getName() + ".rrd"));
             return getPersistenceSeries(persistenceService, item, timeBegin, timeEnd, resolution);
         } catch (Exception e) {
-            logger.error(e.getLocalizedMessage() + ": fallback to generic persistance service");
+            logger.error("{}: fallback to generic persistance service", e.getLocalizedMessage());
             return getPersistenceSeries(persistenceService, item, timeBegin, timeEnd, resolution);
         }
         return convertToRrd(data);
     }
 
     private ArrayList<Object> convertToRrd(Map<Long, ArrayList<String>> data) {
+        // sort data by key
+        Map<Long, ArrayList<String>> treeMap = new TreeMap<Long, ArrayList<String>>(data);
         ArrayList<Object> rrd = new ArrayList<Object>();
-        for (Long time : data.keySet()) {
+        for (Long time : treeMap.keySet()) {
             Object[] entry = new Object[2];
             entry[0] = time;
             entry[1] = data.get(time);

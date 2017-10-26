@@ -1,18 +1,12 @@
 /**
- * Copyright (c) 2014 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
 package org.openhab.binding.vitotronic.handler;
-
-/**
- * The {@link VitotronicBridgeHandler} class handles the connection to the
- * optolink adapter.
- *
- * @author Stefan Andres - Initial contribution
- */
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +37,12 @@ import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+/**
+ * The {@link VitotronicBridgeHandler} class handles the connection to the
+ * optolink adapter.
+ *
+ * @author Stefan Andres - Initial contribution
+ */
 public class VitotronicBridgeHandler extends BaseBridgeHandler {
 
     private Logger logger = LoggerFactory.getLogger(VitotronicBridgeHandler.class);

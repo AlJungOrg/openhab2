@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2015, openHAB.org and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -9,6 +9,7 @@
 package org.openhab.binding.rfxcom.internal.messages;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.smarthome.core.library.items.ContactItem;
@@ -19,325 +20,311 @@ import org.eclipse.smarthome.core.library.types.OnOffType;
 import org.eclipse.smarthome.core.library.types.OpenClosedType;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.Type;
-import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.rfxcom.RFXComValueSelector;
 import org.openhab.binding.rfxcom.internal.exceptions.RFXComException;
+import org.openhab.binding.rfxcom.internal.exceptions.RFXComUnsupportedValueException;
 
 /**
  * RFXCOM data class for lighting1 message. See X10, ARC, etc..
- * 
+ *
  * @author Evert van Es, Cycling Engineer - Initial contribution
  * @author Pauli Anttila
  */
 public class RFXComLighting1Message extends RFXComBaseMessage {
 
-	public enum SubType {
-		X10(0),
-		ARC(1),
-		AB400D(2),
-		WAVEMAN(3),
-		EMW200(4),
-		IMPULS(5),
-		RISINGSUN(6),
-		PHILIPS(7),
-		ENERGENIE(8),
-		ENERGENIE_5(9),
-		COCO(10),
-		
-		UNKNOWN(255);
+    public enum SubType {
+        X10(0),
+        ARC(1),
+        AB400D(2),
+        WAVEMAN(3),
+        EMW200(4),
+        IMPULS(5),
+        RISINGSUN(6),
+        PHILIPS(7),
+        ENERGENIE(8),
+        ENERGENIE_5(9),
+        COCO(10),
+        HQ_COCO20(11);
 
-		private final int subType;
+        private final int subType;
 
-		SubType(int subType) {
-			this.subType = subType;
-		}
+        SubType(int subType) {
+            this.subType = subType;
+        }
 
-		SubType(byte subType) {
-			this.subType = subType;
-		}
+        public byte toByte() {
+            return (byte) subType;
+        }
 
-		public byte toByte() {
-			return (byte) subType;
-		}
-	}
+        public static SubType fromByte(int input) throws RFXComUnsupportedValueException {
+            for (SubType c : SubType.values()) {
+                if (c.subType == input) {
+                    return c;
+                }
+            }
 
-	public enum Commands {
-		OFF(0),
-		ON(1),
-		DIM(2),
-		BRIGHT(3),
-		GROUP_OFF(5),
-		GROUP_ON(6),
-		CHIME(7),
-		
-		UNKNOWN(255);
+            throw new RFXComUnsupportedValueException(SubType.class, input);
+        }
+    }
 
-		private final int command;
+    public enum Commands {
+        OFF(0),
+        ON(1),
+        DIM(2),
+        BRIGHT(3),
+        GROUP_OFF(5),
+        GROUP_ON(6),
+        CHIME(7);
 
-		Commands(int command) {
-			this.command = command;
-		}
+        private final int command;
 
-		Commands(byte command) {
-			this.command = command;
-		}
+        Commands(int command) {
+            this.command = command;
+        }
 
-		public byte toByte() {
-			return (byte) command;
-		}
-	}
+        public byte toByte() {
+            return (byte) command;
+        }
 
-	private final static List<RFXComValueSelector> supportedInputValueSelectors = Arrays
-			.asList(RFXComValueSelector.SIGNAL_LEVEL,
-					RFXComValueSelector.COMMAND,
-					RFXComValueSelector.CONTACT);
+        public static Commands fromByte(int input) throws RFXComUnsupportedValueException {
+            for (Commands c : Commands.values()) {
+                if (c.command == input) {
+                    return c;
+                }
+            }
 
-	private final static List<RFXComValueSelector> supportedOutputValueSelectors = Arrays
-			.asList(RFXComValueSelector.COMMAND);
+            throw new RFXComUnsupportedValueException(Commands.class, input);
+        }
+    }
 
-	public SubType subType = SubType.X10;
-	public char houseCode = 'A';
-	public byte unitCode = 0;
-	public Commands command = Commands.OFF;
-	public byte signalLevel = 0;
-	public boolean group = false;
-	
-	public RFXComLighting1Message() {
-		packetType = PacketType.LIGHTING1;
-	}
+    private static final List<RFXComValueSelector> SUPPORTED_INPUT_VALUE_SELECTORS = Arrays
+            .asList(RFXComValueSelector.SIGNAL_LEVEL, RFXComValueSelector.COMMAND, RFXComValueSelector.CONTACT);
 
-	public RFXComLighting1Message(byte[] data) {
+    private static final List<RFXComValueSelector> SUPPORTED_OUTPUT_VALUE_SELECTORS = Collections
+            .singletonList(RFXComValueSelector.COMMAND);
 
-		encodeMessage(data);
-	}
+    public SubType subType;
+    public char houseCode;
+    public byte unitCode;
+    public Commands command;
+    public byte signalLevel;
+    public boolean group;
 
-	@Override
-	public String toString() {
-		String str = "";
+    public RFXComLighting1Message() {
+        packetType = PacketType.LIGHTING1;
+    }
 
-		str += super.toString();
-		str += ", Sub type = " + subType;
-		str += ", Device Id = " + getDeviceId();
-		str += ", Command = " + command;
-		str += ", Signal level = " + signalLevel;
+    public RFXComLighting1Message(byte[] data) throws RFXComException {
 
-		return str;
-	}
+        encodeMessage(data);
+    }
 
-	@Override
-	public void encodeMessage(byte[] data) {
+    @Override
+    public String toString() {
+        String str = "";
 
-		super.encodeMessage(data);
+        str += super.toString();
+        str += ", Sub type = " + subType;
+        str += ", Device Id = " + getDeviceId();
+        str += ", Command = " + command;
+        str += ", Signal level = " + signalLevel;
 
-		try {
-			subType = SubType.values()[super.subType];
-		} catch (Exception e) {
-			subType = SubType.UNKNOWN;
-		}
-		
-		houseCode = (char) data[4];
+        return str;
+    }
 
-		try {
-			command = Commands.values()[data[6]];
-		} catch (Exception e) {
-			command = Commands.UNKNOWN;
-		}
+    @Override
+    public void encodeMessage(byte[] data) throws RFXComException {
 
-		if ((command == Commands.GROUP_ON) || (command == Commands.GROUP_OFF)) {
-			unitCode = 0;
-		} else {
-			unitCode = data[5];
-		}
-		
-		signalLevel = (byte) ((data[7] & 0xF0) >> 4);
-	}
+        super.encodeMessage(data);
 
-	@Override
-	public byte[] decodeMessage() {
-		 // Example data 	07 10 01 00 42 01 01 70
-		//                  07 10 01 00 42 10 06 70 
-		
-		byte[] data = new byte[8];
+        subType = SubType.fromByte(super.subType);
+        houseCode = (char) data[4];
+        command = Commands.fromByte(data[6]);
 
-		data[0] = 0x07;
-		data[1] = RFXComBaseMessage.PacketType.LIGHTING1.toByte();
-		data[2] = subType.toByte();
-		data[3] = seqNbr;
-		data[4] = (byte) houseCode;
-		data[5] = unitCode;
-		data[6] = command.toByte();
-		data[7] = (byte) ((signalLevel & 0x0F) << 4);
+        if ((command == Commands.GROUP_ON) || (command == Commands.GROUP_OFF)) {
+            unitCode = 0;
+        } else {
+            unitCode = data[5];
+        }
 
-		return data;
-	}
-	
-	@Override
-	public String getDeviceId() {
-		 return houseCode + ID_DELIMITER + unitCode;
-	}
+        signalLevel = (byte) ((data[7] & 0xF0) >> 4);
+    }
 
-	@Override
-	public State convertToState(
-			RFXComValueSelector valueSelector) throws RFXComException {
-		
-		State state = UnDefType.UNDEF;
+    @Override
+    public byte[] decodeMessage() {
+        // Example data 07 10 01 00 42 01 01 70
+        // 07 10 01 00 42 10 06 70
 
-		if (valueSelector.getItemClass() == NumberItem.class) {
+        byte[] data = new byte[8];
 
-			if (valueSelector == RFXComValueSelector.SIGNAL_LEVEL) {
+        data[0] = 0x07;
+        data[1] = PacketType.LIGHTING1.toByte();
+        data[2] = subType.toByte();
+        data[3] = seqNbr;
+        data[4] = (byte) houseCode;
+        data[5] = unitCode;
+        data[6] = command.toByte();
+        data[7] = (byte) ((signalLevel & 0x0F) << 4);
 
-				state = new DecimalType(signalLevel);
+        return data;
+    }
 
-			} else {
-				throw new RFXComException("Can't convert "
-						+ valueSelector + " to NumberItem");
-			}
+    @Override
+    public String getDeviceId() {
+        return houseCode + ID_DELIMITER + unitCode;
+    }
 
-		} else if (valueSelector.getItemClass() == SwitchItem.class) {
+    @Override
+    public State convertToState(RFXComValueSelector valueSelector) throws RFXComException {
 
-			if (valueSelector == RFXComValueSelector.COMMAND) {
+        State state;
 
-				switch (command) {
-				case OFF:
-				case GROUP_OFF:
-				case DIM:
-					state = OnOffType.OFF;
-					break;
+        if (valueSelector.getItemClass() == NumberItem.class) {
 
-				case ON:
-				case GROUP_ON:
-				case BRIGHT:
-					state = OnOffType.ON;
-					break;
+            if (valueSelector == RFXComValueSelector.SIGNAL_LEVEL) {
 
-				case CHIME:
-					state = OnOffType.ON;
-					break;
-					
-				default:
-					throw new RFXComException("Can't convert "
-							+ command + " to SwitchItem");
-				}
+                state = new DecimalType(signalLevel);
 
-			} else {
-				throw new RFXComException("Can't convert "
-						+ valueSelector + " to SwitchItem");
-			}
+            } else {
+                throw new RFXComException("Can't convert " + valueSelector + " to NumberItem");
+            }
 
-		} else if (valueSelector.getItemClass() == ContactItem.class) {
+        } else if (valueSelector.getItemClass() == SwitchItem.class) {
 
-			if (valueSelector == RFXComValueSelector.CONTACT) {
+            if (valueSelector == RFXComValueSelector.COMMAND) {
 
-				switch (command) {
-				case OFF:
-				case GROUP_OFF:
-				case DIM:
-					state = OpenClosedType.CLOSED;
-					break;
+                switch (command) {
+                    case OFF:
+                    case GROUP_OFF:
+                    case DIM:
+                        state = OnOffType.OFF;
+                        break;
 
-				case ON:
-				case GROUP_ON:
-				case BRIGHT:
-					state = OpenClosedType.OPEN;
-					break;
+                    case ON:
+                    case GROUP_ON:
+                    case BRIGHT:
+                        state = OnOffType.ON;
+                        break;
 
-				case CHIME:
-					state = OpenClosedType.OPEN;
-					break;
-					
-				default:
-					throw new RFXComException("Can't convert "
-							+ command + " to ContactItem");
-				}
+                    case CHIME:
+                        state = OnOffType.ON;
+                        break;
 
-			} else {
-				throw new RFXComException("Can't convert "
-						+ valueSelector + " to ContactItem");
-			}
+                    default:
+                        throw new RFXComException("Can't convert " + command + " to SwitchItem");
+                }
 
-		} else {
+            } else {
+                throw new RFXComException("Can't convert " + valueSelector + " to SwitchItem");
+            }
 
-			throw new RFXComException("Can't convert " + valueSelector
-					+ " to " + valueSelector.getItemClass());
+        } else if (valueSelector.getItemClass() == ContactItem.class) {
 
-		}
+            if (valueSelector == RFXComValueSelector.CONTACT) {
 
-		return state;
-	}
+                switch (command) {
+                    case OFF:
+                    case GROUP_OFF:
+                    case DIM:
+                        state = OpenClosedType.CLOSED;
+                        break;
 
-	@Override
-	public void setSubType(Object subType) throws RFXComException {
-		this.subType = ((SubType) subType);
-	}
+                    case ON:
+                    case GROUP_ON:
+                    case BRIGHT:
+                        state = OpenClosedType.OPEN;
+                        break;
 
-	@Override
-	public void setDeviceId(String deviceId) throws RFXComException {
-		
-		String[] ids = deviceId.split("\\" + ID_DELIMITER);
-		if (ids.length != 2) {
-			throw new RFXComException("Invalid device id '" + deviceId + "'");
-		}
+                    case CHIME:
+                        state = OpenClosedType.OPEN;
+                        break;
 
-		houseCode = ids[0].charAt(0);
-		
-		// Get unitcode, 0 means group
-		unitCode = Byte.parseByte(ids[1]);
-		if (unitCode == 0) {
-			unitCode = 1;
-			group = true;
-		}
-	}
+                    default:
+                        throw new RFXComException("Can't convert " + command + " to ContactItem");
+                }
 
-	@Override
-	public void convertFromState(RFXComValueSelector valueSelector, Type type)
-			throws RFXComException {
+            } else {
+                throw new RFXComException("Can't convert " + valueSelector + " to ContactItem");
+            }
 
-		switch (valueSelector) {
-		case COMMAND:
-			if (type instanceof OnOffType) {
-				if (group) {
-					command = (type == OnOffType.ON ? Commands.GROUP_ON : Commands.GROUP_OFF);
-				} else {				
-					command = (type == OnOffType.ON ? Commands.ON : Commands.OFF);
-				}
-			} else {
-				throw new RFXComException("Can't convert " + type + " to Command");
-			}
-			break;
+        } else {
 
-		default:
-			throw new RFXComException("Can't convert " + type + " to " + valueSelector);
-		}
+            throw new RFXComException("Can't convert " + valueSelector + " to " + valueSelector.getItemClass());
 
-	}
+        }
 
-	@Override
-	public Object convertSubType(String subType) throws RFXComException {
+        return state;
+    }
 
-		for (SubType s : SubType.values()) {
-			if (s.toString().equals(subType)) {
-				return s;
-			}
-		}
+    @Override
+    public void setSubType(Object subType) throws RFXComException {
+        this.subType = ((SubType) subType);
+    }
 
-		// try to find sub type by number
-		try {
-			return SubType.values()[Integer.parseInt(subType)];
-		} catch (Exception e) {
-			throw new RFXComException("Unknown sub type " + subType);
-		}
-	}
-	
-	@Override
-	public List<RFXComValueSelector> getSupportedInputValueSelectors()
-			throws RFXComException {
-		return supportedInputValueSelectors;
-	}
+    @Override
+    public void setDeviceId(String deviceId) throws RFXComException {
 
-	@Override
-	public List<RFXComValueSelector> getSupportedOutputValueSelectors()
-			throws RFXComException {
-		return supportedOutputValueSelectors;
-	}
+        String[] ids = deviceId.split("\\" + ID_DELIMITER);
+        if (ids.length != 2) {
+            throw new RFXComException("Invalid device id '" + deviceId + "'");
+        }
+
+        houseCode = ids[0].charAt(0);
+
+        // Get unitcode, 0 means group
+        unitCode = Byte.parseByte(ids[1]);
+        if (unitCode == 0) {
+            unitCode = 1;
+            group = true;
+        }
+    }
+
+    @Override
+    public void convertFromState(RFXComValueSelector valueSelector, Type type) throws RFXComException {
+
+        switch (valueSelector) {
+            case COMMAND:
+                if (type instanceof OnOffType) {
+                    if (group) {
+                        command = (type == OnOffType.ON ? Commands.GROUP_ON : Commands.GROUP_OFF);
+                    } else {
+                        command = (type == OnOffType.ON ? Commands.ON : Commands.OFF);
+                    }
+                } else {
+                    throw new RFXComException("Can't convert " + type + " to Command");
+                }
+                break;
+
+            default:
+                throw new RFXComException("Can't convert " + type + " to " + valueSelector);
+        }
+
+    }
+
+    @Override
+    public Object convertSubType(String subType) throws RFXComException {
+
+        for (SubType s : SubType.values()) {
+            if (s.toString().equals(subType)) {
+                return s;
+            }
+        }
+
+        try {
+            return SubType.fromByte(Integer.parseInt(subType));
+        } catch (NumberFormatException e) {
+            throw new RFXComUnsupportedValueException(SubType.class, subType);
+        }
+    }
+
+    @Override
+    public List<RFXComValueSelector> getSupportedInputValueSelectors() throws RFXComException {
+        return SUPPORTED_INPUT_VALUE_SELECTORS;
+    }
+
+    @Override
+    public List<RFXComValueSelector> getSupportedOutputValueSelectors() throws RFXComException {
+        return SUPPORTED_OUTPUT_VALUE_SELECTORS;
+    }
 
 }
