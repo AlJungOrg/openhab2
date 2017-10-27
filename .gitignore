@@ -7,7 +7,6 @@ bundles/io/org.openhab.io.multimedia.tts.marytts/lib/
 .metadata/
 */plugin.xml_gen
 targetplatform/*.launch
-
 distribution/openhabhome/logs/*.log
 distribution/openhabhome/*.zip
 distribution/openhabhome/etc/rrd4j/*.rrd
@@ -33,3 +32,6 @@ addons/voice/org.openhab.voice.marytts/lib/sgt-3.0.jar
 addons/voice/org.openhab.voice.marytts/lib/voice-bits1-hsmm-5.0-SNAPSHOT.jar
 addons/voice/org.openhab.voice.marytts/lib/voice-bits3-hsmm-5.0-SNAPSHOT.jar
 addons/voice/org.openhab.voice.marytts/lib/voice-cmu-slt-hsmm-5.0.jar
+
+.directory
+*.kate-swp
