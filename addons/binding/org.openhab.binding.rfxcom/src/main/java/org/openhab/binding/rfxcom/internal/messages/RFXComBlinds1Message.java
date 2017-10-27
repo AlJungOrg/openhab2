@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2015, openHAB.org and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -22,280 +22,285 @@ import org.eclipse.smarthome.core.types.Type;
 import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.rfxcom.RFXComValueSelector;
 import org.openhab.binding.rfxcom.internal.exceptions.RFXComException;
-
+import org.openhab.binding.rfxcom.internal.exceptions.RFXComUnsupportedValueException;
 
 /**
  * RFXCOM data class for blinds1 message.
- * 
+ *
  * @author Peter Janson / Pål Edman - Initial contribution
  * @author Pauli Anttila
  */
 public class RFXComBlinds1Message extends RFXComBaseMessage {
 
-	public enum Commands {
-		OPEN(0),			//MediaMount DOWN(0),
-		CLOSE(1),			//MediaMount UPP(1),
-		STOP(2),
-		CONFIRM(3),
-		SET_LIMIT(4),		//YR1326 SET_UPPER_LIMIT(4),
-		SET_LOWER_LIMIT(5),	//YR1326
-		DELETE_LIMITS(6),	//YR1326
-		CHANGE_DIRECTON(7),	//YR1326
-		
-		UNKNOWN(255);
-		
-		private final int command;
+    public enum SubType {
+        T0(0), // Hasta new/RollerTrol
+        T1(1),
+        T2(2),
+        T3(3),
+        T4(4), // Additional commands.
+        T5(5), // MEDIA MOUNT have different direction commands than the rest!! Needs to be fixed.
+        T6(6),
+        T7(7),
+        T8(8), // Chamberlain CS4330
+        T9(9), // Sunpery/BTX
+        T10(10), // Dolat DLM-1, Topstar
+        T11(11), // ASP
+        T12(12), // Confexx CNF24-2435
+        T13(13); // Screenline
 
-		Commands(int command) {
-			this.command = command;
-		}
+        private final int subType;
 
-		Commands(byte command) {
-			this.command = command;
-		}
+        SubType(int subType) {
+            this.subType = subType;
+        }
 
-		public byte toByte() {
-			return (byte) command;
-		}
-	}
+        public byte toByte() {
+            return (byte) subType;
+        }
 
-	public enum SubType {
-		T0(0),
-		T1(1),
-		T2(2),
-		T3(3),
-		T4(4),
-		T5(5),
-		T6(6),
-		T7(7),
-		T8(8),		
-		
-		UNKNOWN(255);
+        public static SubType fromByte(int input) throws RFXComUnsupportedValueException {
+            for (SubType c : SubType.values()) {
+                if (c.subType == input) {
+                    return c;
+                }
+            }
 
-		private final int subType;
+            throw new RFXComUnsupportedValueException(SubType.class, input);
+        }
+    }
 
-		SubType(int subType) {
-			this.subType = subType;
-		}
+    public enum Commands {
+        OPEN(0), // MediaMount DOWN(0),
+        CLOSE(1), // MediaMount UPP(1),
+        STOP(2),
+        CONFIRM(3),
+        SET_LIMIT(4), // YR1326 SET_UPPER_LIMIT(4),
+        SET_LOWER_LIMIT(5), // YR1326
+        DELETE_LIMITS(6), // YR1326
+        CHANGE_DIRECTON(7); // YR1326
 
-		SubType(byte subType) {
-			this.subType = subType;
-		}
+        private final int command;
 
-		public byte toByte() {
-			return (byte) subType;
-		}
-	}
+        Commands(int command) {
+            this.command = command;
+        }
 
-	private final static List<RFXComValueSelector> supportedInputValueSelectors = Arrays
-			.asList(RFXComValueSelector.SIGNAL_LEVEL,
-					RFXComValueSelector.BATTERY_LEVEL,
-					RFXComValueSelector.COMMAND);
+        public byte toByte() {
+            return (byte) command;
+        }
 
-	private final static List<RFXComValueSelector> supportedOutputValueSelectors = Arrays
-			.asList(RFXComValueSelector.SHUTTER);
+        public static Commands fromByte(int input) throws RFXComUnsupportedValueException {
+            for (Commands c : Commands.values()) {
+                if (c.command == input) {
+                    return c;
+                }
+            }
 
-	public SubType subType = SubType.T0;
-	public int sensorId = 0;
-	public byte unitCode = 0;
-	public Commands command = Commands.STOP;
-	public byte signalLevel = 0;
-	public byte batteryLevel = 0;
+            throw new RFXComUnsupportedValueException(Commands.class, input);
+        }
+    }
 
-	public RFXComBlinds1Message() {
-		packetType = PacketType.BLINDS1;
-	}
+    private static final List<RFXComValueSelector> SUPPORTED_INPUT_VALUE_SELECTORS = Arrays
+            .asList(RFXComValueSelector.SIGNAL_LEVEL, RFXComValueSelector.BATTERY_LEVEL, RFXComValueSelector.COMMAND);
 
-	public RFXComBlinds1Message(byte[] data) {
-		encodeMessage(data);
-	}
+    private static final List<RFXComValueSelector> SUPPORTED_OUTPUT_VALUE_SELECTORS = Arrays
+            .asList(RFXComValueSelector.SHUTTER);
 
-	@Override
-	public String toString() {
-		String str = "";
+    public SubType subType;
+    public int sensorId;
+    public byte unitCode;
+    public Commands command;
+    public byte signalLevel;
+    public byte batteryLevel;
 
-		str += super.toString();
-		str += ", Sub type = " + subType;
-		str += ", Device Id = " + getDeviceId();
-		str += ", Command = " + command;
-		str += ", Signal level = " + signalLevel;
-		str += ", Battery level = " + batteryLevel;
+    public RFXComBlinds1Message() {
+        packetType = PacketType.BLINDS1;
+    }
 
-		return str;
-	}
+    public RFXComBlinds1Message(byte[] data) throws RFXComException {
+        encodeMessage(data);
+    }
 
-	@Override
-	public void encodeMessage(byte[] data) {
+    @Override
+    public String toString() {
+        String str = "";
 
-		super.encodeMessage(data);
-		
-		try {
-			subType = SubType.values()[super.subType];
-		} catch (Exception e) {
-			subType = SubType.UNKNOWN;
-		}
-		
-		sensorId = (data[4] & 0xFF) << 16 | (data[5] & 0xFF) << 8 | (data[6] & 0xFF);
-		unitCode = data[7];
+        str += super.toString();
+        str += ", Sub type = " + subType;
+        str += ", Device Id = " + getDeviceId();
+        str += ", Command = " + command;
+        str += ", Signal level = " + signalLevel;
+        str += ", Battery level = " + batteryLevel;
 
-		try {
-			command = Commands.values()[data[8]];
-		} catch (Exception e) {
-			command = Commands.UNKNOWN;
-		}
+        return str;
+    }
 
-		signalLevel = (byte) ((data[9] & 0xF0) >> 4);
-		batteryLevel = (byte) (data[9] & 0x0F);
-	}
+    @Override
+    public void encodeMessage(byte[] data) throws RFXComException {
 
-	@Override
-	public byte[] decodeMessage() {
-		 // Example data
-		 // BLINDS1 09 19 00 06 00 B1 8F 01 00 70
-		
-		byte[] data = new byte[10];
+        super.encodeMessage(data);
 
-		data[0] = 0x09;
-		data[1] = RFXComBaseMessage.PacketType.BLINDS1.toByte();
-		data[2] = subType.toByte();
-		data[3] = seqNbr;
-		data[4] = (byte) ((sensorId >> 16) & 0xFF);
-		data[5] = (byte) ((sensorId >> 8) & 0xFF);
-		data[6] = (byte) (sensorId & 0xFF);
-		data[7] = unitCode;
-		data[8] = command.toByte();
-		data[9] = (byte) (((signalLevel & 0x0F) << 4) | (batteryLevel & 0x0F));
-		
-		return data;
-	}
-	
-	@Override
-	public String getDeviceId() {
-		 return sensorId + ID_DELIMITER + unitCode;
-	}
+        subType = SubType.fromByte(super.subType);
 
-	@Override
-	public State convertToState(RFXComValueSelector valueSelector)
-			throws RFXComException {
+        if (subType == SubType.T6) {
+            sensorId = (data[4] & 0xFF) << 20 | (data[5] & 0xFF) << 12 | (data[6] & 0xFF) << 4 | (data[7] & 0xF0) >> 4;
+            unitCode = (byte) (data[7] & 0x0F);
+        } else {
+            sensorId = (data[4] & 0xFF) << 16 | (data[5] & 0xFF) << 8 | (data[6] & 0xFF);
+            unitCode = data[7];
+        }
 
-		State state = UnDefType.UNDEF;
+        command = Commands.fromByte(data[8]);
 
-		if (valueSelector.getItemClass() == NumberItem.class) {
+        signalLevel = (byte) ((data[9] & 0xF0) >> 4);
+        batteryLevel = (byte) (data[9] & 0x0F);
+    }
 
-			if (valueSelector == RFXComValueSelector.SIGNAL_LEVEL) {
+    @Override
+    public byte[] decodeMessage() {
+        // Example data
+        // BLINDS1 09 19 00 06 00 B1 8F 01 00 70
 
-				state = new DecimalType(signalLevel);
+        byte[] data = new byte[10];
 
-			} else if (valueSelector == RFXComValueSelector.BATTERY_LEVEL) {
+        data[0] = 0x09;
+        data[1] = RFXComBaseMessage.PacketType.BLINDS1.toByte();
+        data[2] = subType.toByte();
+        data[3] = seqNbr;
 
-				state = new DecimalType(batteryLevel);
+        if (subType == SubType.T6) {
+            data[4] = (byte) ((sensorId >>> 20) & 0xFF);
+            data[5] = (byte) ((sensorId >>> 12) & 0xFF);
+            data[6] = (byte) ((sensorId >>> 4) & 0xFF);
+            data[7] = (byte) (((sensorId & 0x0F) << 4) | (unitCode & 0x0F));
+        } else {
+            data[4] = (byte) ((sensorId >> 16) & 0xFF);
+            data[5] = (byte) ((sensorId >> 8) & 0xFF);
+            data[6] = (byte) (sensorId & 0xFF);
+            data[7] = unitCode;
+        }
 
-			} else {
-				throw new RFXComException("Can't convert " + valueSelector
-						+ " to NumberItem");
-			}
+        data[8] = command.toByte();
+        data[9] = (byte) (((signalLevel & 0x0F) << 4) | (batteryLevel & 0x0F));
 
-		} else if (valueSelector.getItemClass() == RollershutterItem.class) {
+        return data;
+    }
 
-			if (valueSelector == RFXComValueSelector.COMMAND) {
+    @Override
+    public String getDeviceId() {
+        return sensorId + ID_DELIMITER + unitCode;
+    }
 
-				switch (command) {
-				case CLOSE:
-					state = OpenClosedType.CLOSED;
-					break;
+    @Override
+    public State convertToState(RFXComValueSelector valueSelector) throws RFXComException {
 
-				case OPEN:
-					state = OpenClosedType.OPEN;
-					break;
+        State state = UnDefType.UNDEF;
 
-				default:
-					break;
-				}
+        if (valueSelector.getItemClass() == NumberItem.class) {
 
-			} else {
-				throw new NumberFormatException("Can't convert "
-						+ valueSelector + " to RollershutterItem");
-			}
+            if (valueSelector == RFXComValueSelector.SIGNAL_LEVEL) {
 
-		} else {
+                state = new DecimalType(signalLevel);
 
-			throw new NumberFormatException("Can't convert " + valueSelector
-					+ " to " + valueSelector.getItemClass());
+            } else if (valueSelector == RFXComValueSelector.BATTERY_LEVEL) {
 
-		}
+                state = new DecimalType(batteryLevel);
 
-		return state;
-	}
+            } else {
+                throw new RFXComException("Can't convert " + valueSelector + " to NumberItem");
+            }
 
-	@Override
-	public void setSubType(Object subType) throws RFXComException {
-		this.subType = ((SubType) subType);
-	}
+        } else if (valueSelector.getItemClass() == RollershutterItem.class) {
 
-	@Override
-	public void setDeviceId(String deviceId) throws RFXComException {
-		String[] ids = deviceId.split("\\" + ID_DELIMITER);
-		if (ids.length != 2) {
-			throw new RFXComException("Invalid device id '" + deviceId + "'");
-		}
+            if (valueSelector == RFXComValueSelector.COMMAND) {
 
-		sensorId = Integer.parseInt(ids[0]);
-		unitCode = Byte.parseByte(ids[1]);
-	}
+                switch (command) {
+                    case CLOSE:
+                        state = OpenClosedType.CLOSED;
+                        break;
 
-	@Override
-	public void convertFromState(RFXComValueSelector valueSelector, Type type)
-			throws RFXComException {
+                    case OPEN:
+                        state = OpenClosedType.OPEN;
+                        break;
 
-		switch (valueSelector) {
-		case SHUTTER:
-			if (type instanceof OpenClosedType) {
-				command = (type == OpenClosedType.CLOSED ? Commands.CLOSE
-						: Commands.OPEN);
-			} else if (type instanceof UpDownType) {
-				command = (type == UpDownType.UP ? Commands.OPEN
-						: Commands.CLOSE);
-			} else if (type instanceof StopMoveType) {
-				command = Commands.STOP;
+                    default:
+                        break;
+                }
 
-			} else {
-				throw new NumberFormatException("Can't convert " + type
-						+ " to Command");
-			}
-			break;
+            } else {
+                throw new NumberFormatException("Can't convert " + valueSelector + " to RollershutterItem");
+            }
 
-		default:
-			throw new RFXComException("Can't convert " + type + " to "
-					+ valueSelector);
-		}
-	}
+        } else {
 
-	@Override
-	public Object convertSubType(String subType) throws RFXComException {
+            throw new NumberFormatException("Can't convert " + valueSelector + " to " + valueSelector.getItemClass());
 
-		for (SubType s : SubType.values()) {
-			if (s.toString().equals(subType)) {
-				return s;
-			}
-		}
-		
-		// try to find sub type by number
-		try {
-			return SubType.values()[Integer.parseInt(subType)];
-		} catch (Exception e) {
-			throw new RFXComException("Unknown sub type " + subType);
-		}
-	}
+        }
 
-	@Override
-	public List<RFXComValueSelector> getSupportedInputValueSelectors()
-			throws RFXComException {
-		return supportedInputValueSelectors;
-	}
+        return state;
+    }
 
-	@Override
-	public List<RFXComValueSelector> getSupportedOutputValueSelectors()
-			throws RFXComException {
-		return supportedOutputValueSelectors;
-	}
+    @Override
+    public void setSubType(Object subType) throws RFXComException {
+        this.subType = ((SubType) subType);
+    }
+
+    @Override
+    public void setDeviceId(String deviceId) throws RFXComException {
+        String[] ids = deviceId.split("\\" + ID_DELIMITER);
+        if (ids.length != 2) {
+            throw new RFXComException("Invalid device id '" + deviceId + "'");
+        }
+
+        sensorId = Integer.parseInt(ids[0]);
+        unitCode = Byte.parseByte(ids[1]);
+    }
+
+    @Override
+    public void convertFromState(RFXComValueSelector valueSelector, Type type) throws RFXComException {
+
+        switch (valueSelector) {
+            case SHUTTER:
+                if (type instanceof OpenClosedType) {
+                    command = (type == OpenClosedType.CLOSED ? Commands.CLOSE : Commands.OPEN);
+                } else if (type instanceof UpDownType) {
+                    command = (type == UpDownType.UP ? Commands.OPEN : Commands.CLOSE);
+                } else if (type instanceof StopMoveType) {
+                    command = Commands.STOP;
+
+                } else {
+                    throw new RFXComException("Can't convert " + type + " to Command");
+                }
+                break;
+
+            default:
+                throw new RFXComException("Can't convert " + type + " to " + valueSelector);
+        }
+    }
+
+    @Override
+    public Object convertSubType(String subType) throws RFXComException {
+
+        for (SubType s : SubType.values()) {
+            if (s.toString().equals(subType)) {
+                return s;
+            }
+        }
+
+        try {
+            return SubType.fromByte(Integer.parseInt(subType));
+        } catch (NumberFormatException e) {
+            throw new RFXComUnsupportedValueException(SubType.class, subType);
+        }
+    }
+
+    @Override
+    public List<RFXComValueSelector> getSupportedInputValueSelectors() throws RFXComException {
+        return SUPPORTED_INPUT_VALUE_SELECTORS;
+    }
+
+    @Override
+    public List<RFXComValueSelector> getSupportedOutputValueSelectors() throws RFXComException {
+        return SUPPORTED_OUTPUT_VALUE_SELECTORS;
+    }
 }

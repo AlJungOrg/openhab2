@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2010-2015, openHAB.org and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -9,254 +9,241 @@
 package org.openhab.binding.rfxcom.internal.messages;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.smarthome.core.library.items.NumberItem;
 import org.eclipse.smarthome.core.library.types.DecimalType;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.core.types.Type;
-import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.rfxcom.RFXComValueSelector;
 import org.openhab.binding.rfxcom.internal.exceptions.RFXComException;
+import org.openhab.binding.rfxcom.internal.exceptions.RFXComUnsupportedValueException;
 
 /**
  * RFXCOM data class for energy message.
- * 
+ *
  * @author Unknown - Initial contribution
  * @author Pauli Anttila
  */
-public class RFXComEnergyMessage  extends RFXComBaseMessage {
+public class RFXComEnergyMessage extends RFXComBaseMessage {
 
-	private static float TOTAL_USAGE_CONVERSION_FACTOR = 223.666F;
-	private static float WATTS_TO_AMPS_CONVERSION_FACTOR = 230F;
-	
-	public enum SubType {
-		ELEC1(0),
-		ELEC2(1),
-		ELEC3(2),
+    private static final double TOTAL_USAGE_CONVERSION_FACTOR = 223.666d;
+    private static final double WATTS_TO_AMPS_CONVERSION_FACTOR = 230d;
 
-		UNKNOWN(255);
+    public enum SubType {
+        ELEC2(1),
+        ELEC3(2);
 
-		private final int subType;
+        private final int subType;
 
-		SubType(int subType) {
-			this.subType = subType;
-		}
+        SubType(int subType) {
+            this.subType = subType;
+        }
 
-		SubType(byte subType) {
-			this.subType = subType;
-		}
+        public byte toByte() {
+            return (byte) subType;
+        }
 
-		public byte toByte() {
-			return (byte) subType;
-		}
-	}
+        public static SubType fromByte(int input) throws RFXComUnsupportedValueException {
+            for (SubType c : SubType.values()) {
+                if (c.subType == input) {
+                    return c;
+                }
+            }
 
-	private final static List<RFXComValueSelector> supportedInputValueSelectors = Arrays
-			.asList(RFXComValueSelector.SIGNAL_LEVEL,
-					RFXComValueSelector.BATTERY_LEVEL,
-					RFXComValueSelector.COMMAND,
-					RFXComValueSelector.INSTANT_POWER,
-					RFXComValueSelector.TOTAL_USAGE,
-					RFXComValueSelector.INSTANT_AMPS,
-					RFXComValueSelector.TOTAL_AMP_HOURS);
+            throw new RFXComUnsupportedValueException(SubType.class, input);
+        }
+    }
 
-	private final static List<RFXComValueSelector> supportedOutputValueSelectors = Arrays
-			.asList();
+    private static final List<RFXComValueSelector> SUPPORTED_INPUT_VALUE_SELECTORS = Arrays.asList(
+            RFXComValueSelector.SIGNAL_LEVEL, RFXComValueSelector.BATTERY_LEVEL, RFXComValueSelector.INSTANT_POWER,
+            RFXComValueSelector.TOTAL_USAGE, RFXComValueSelector.INSTANT_AMPS, RFXComValueSelector.TOTAL_AMP_HOUR);
 
-	public SubType subType = SubType.ELEC1;
-	public int sensorId = 0;
-	public byte count = 0;
-	public double instantAmps = 0;
-	public double totalAmpHours = 0;
-	public double instantPower = 0;
-	public double totalUsage = 0;
-	public byte signalLevel = 0;
-	public byte batteryLevel = 0;
+    private static final List<RFXComValueSelector> SUPPORTED_OUTPUT_VALUE_SELECTORS = Collections.emptyList();
 
-	public RFXComEnergyMessage() {
-		packetType = PacketType.ENERGY;
-	}
+    public SubType subType;
+    public int sensorId;
+    public byte count;
+    public double instantAmp;
+    public double totalAmpHour;
+    public double instantPower;
+    public double totalUsage;
+    public byte signalLevel;
+    public byte batteryLevel;
 
-	public RFXComEnergyMessage(byte[] data) {
-		encodeMessage(data);
-	}
+    public RFXComEnergyMessage() {
+        packetType = PacketType.ENERGY;
+    }
 
-	@Override
-	public String toString() {
-		String str = "";
+    public RFXComEnergyMessage(byte[] data) throws RFXComException {
+        encodeMessage(data);
+    }
 
-		str += super.toString();
-		str += ", Sub type = " + subType;
-		str += ", Device Id = " + getDeviceId();
-		str += ", Count = " + count;
-		str += ", Instant Amps = " + instantAmps;
-		str += ", Total Amp Hours = " + totalAmpHours;
-		str += ", Signal level = " + signalLevel;
-		str += ", Battery level = " + batteryLevel;
+    @Override
+    public String toString() {
+        String str = "";
 
-		return str;
-	}
+        str += super.toString();
+        str += ", Sub type = " + subType;
+        str += ", Device Id = " + getDeviceId();
+        str += ", Count = " + count;
+        str += ", Instant Amps = " + instantAmp;
+        str += ", Total Amp Hours = " + totalAmpHour;
+        str += ", Signal level = " + signalLevel;
+        str += ", Battery level = " + batteryLevel;
+        str += ", Instant Power = " + instantPower;
+        str += ", Total Usage = " + totalUsage;
 
-	@Override
-	public void encodeMessage(byte[] data) {
+        return str;
+    }
 
-		super.encodeMessage(data);
+    @Override
+    public void encodeMessage(byte[] data) throws RFXComException {
 
-		try {
-			subType = SubType.values()[super.subType];
-		} catch (Exception e) {
-			subType = SubType.UNKNOWN;
-		}
-		
-		sensorId = (data[4] & 0xFF) << 8 | (data[5] & 0xFF);
-		count = data[6];
-		
-		// all usage is reported in Watts based on 230V
-		instantPower = ((data[7] & 0xFF) << 24 | (data[8] & 0xFF) << 16
-				| (data[9] & 0xFF) << 8 | (data[10] & 0xFF))
-				/ TOTAL_USAGE_CONVERSION_FACTOR;
-		totalUsage = ((data[11] & 0xFF) << 40 | (data[12] & 0xFF) << 32
-				| (data[13] & 0xFF) << 24 | (data[14] & 0xFF) << 16
-				| (data[15] & 0xFF) << 8 | (data[16] & 0xFF));
-		
-		// convert to amps so external code can determine the watts based on local voltage
-		instantAmps = instantPower / WATTS_TO_AMPS_CONVERSION_FACTOR;
-		totalAmpHours = totalUsage / WATTS_TO_AMPS_CONVERSION_FACTOR;
-		
-		signalLevel = (byte) ((data[17] & 0xF0) >> 4);
-		batteryLevel = (byte) (data[17] & 0x0F);
-	}
+        super.encodeMessage(data);
 
-	@Override
-	public byte[] decodeMessage() {
-		byte[] data = new byte[17];
+        subType = SubType.fromByte(super.subType);
+        sensorId = (data[4] & 0xFF) << 8 | (data[5] & 0xFF);
+        count = data[6];
 
-		data[0] = 0x11;
-		data[1] = RFXComBaseMessage.PacketType.ENERGY.toByte();
-		data[2] = subType.toByte();
-		data[3] = seqNbr;
-		
-		data[4] = (byte) ((sensorId & 0xFF00) >> 8);
-		data[5] = (byte) (sensorId & 0x00FF);
-		data[6] = count;
+        // all usage is reported in Watts based on 230V
+        instantPower = ((data[7] & 0xFF) << 24 | (data[8] & 0xFF) << 16 | (data[9] & 0xFF) << 8 | (data[10] & 0xFF));
+        totalUsage = ((long) (data[11] & 0xFF) << 40 | (long) (data[12] & 0xFF) << 32 | (data[13] & 0xFF) << 24
+                | (data[14] & 0xFF) << 16 | (data[15] & 0xFF) << 8 | (data[16] & 0xFF)) / TOTAL_USAGE_CONVERSION_FACTOR;
 
-		long instantUsage = (long) instantPower;
-		long totalUsage = (long) this.totalUsage;
-		
-		data[7] = (byte) ((instantUsage >> 24) & 0xFF);
-		data[8] = (byte) ((instantUsage >> 16) & 0xFF);
-		data[9] = (byte) ((instantUsage >> 8) & 0xFF);
-		data[10] = (byte) (instantUsage & 0xFF);
+        // convert to amps so external code can determine the watts based on local voltage
+        instantAmp = instantPower / WATTS_TO_AMPS_CONVERSION_FACTOR;
+        totalAmpHour = totalUsage / WATTS_TO_AMPS_CONVERSION_FACTOR;
 
-		data[11] = (byte) ((totalUsage >> 40) & 0xFF);
-		data[12] = (byte) ((totalUsage >> 32) & 0xFF);
-		data[13] = (byte) ((totalUsage >> 24) & 0xFF);
-		data[14] = (byte) ((totalUsage >> 16) & 0xFF);
-		data[15] = (byte) ((totalUsage >> 8) & 0xFF);
-		data[16] = (byte) (totalUsage & 0xFF);
+        signalLevel = (byte) ((data[17] & 0xF0) >> 4);
+        batteryLevel = (byte) (data[17] & 0x0F);
+    }
 
-		data[17] = (byte) (((signalLevel & 0x0F) << 4) | (batteryLevel & 0x0F));
+    @Override
+    public byte[] decodeMessage() {
+        byte[] data = new byte[18];
 
-		return data;
-	}
-	
-	@Override
-	public String getDeviceId() {
-		 return String.valueOf(sensorId);
-	}
+        data[0] = 0x11;
+        data[1] = RFXComBaseMessage.PacketType.ENERGY.toByte();
+        data[2] = subType.toByte();
+        data[3] = seqNbr;
 
-	@Override
-	public State convertToState(RFXComValueSelector valueSelector)
-			throws RFXComException {
-		
-		State state = UnDefType.UNDEF;
+        data[4] = (byte) ((sensorId & 0xFF00) >> 8);
+        data[5] = (byte) (sensorId & 0x00FF);
+        data[6] = count;
 
-		if (valueSelector.getItemClass() == NumberItem.class) {
+        // convert our 'amp' values back into Watts since this is what comes back
+        long instantUsage = (long) (instantAmp * WATTS_TO_AMPS_CONVERSION_FACTOR);
+        long totalUsage = (long) (totalAmpHour * WATTS_TO_AMPS_CONVERSION_FACTOR * TOTAL_USAGE_CONVERSION_FACTOR);
 
-			if (valueSelector == RFXComValueSelector.SIGNAL_LEVEL) {
+        data[7] = (byte) ((instantUsage >> 24) & 0xFF);
+        data[8] = (byte) ((instantUsage >> 16) & 0xFF);
+        data[9] = (byte) ((instantUsage >> 8) & 0xFF);
+        data[10] = (byte) (instantUsage & 0xFF);
 
-				state = new DecimalType(signalLevel);
+        data[11] = (byte) ((totalUsage >> 40) & 0xFF);
+        data[12] = (byte) ((totalUsage >> 32) & 0xFF);
+        data[13] = (byte) ((totalUsage >> 24) & 0xFF);
+        data[14] = (byte) ((totalUsage >> 16) & 0xFF);
+        data[15] = (byte) ((totalUsage >> 8) & 0xFF);
+        data[16] = (byte) (totalUsage & 0xFF);
 
-			} else if (valueSelector == RFXComValueSelector.BATTERY_LEVEL) {
+        data[17] = (byte) (((signalLevel & 0x0F) << 4) | (batteryLevel & 0x0F));
 
-				state = new DecimalType(batteryLevel);
+        return data;
+    }
 
-			} else if (valueSelector == RFXComValueSelector.INSTANT_POWER) {
+    @Override
+    public String getDeviceId() {
+        return String.valueOf(sensorId);
+    }
 
-				state = new DecimalType(instantPower);
+    @Override
+    public State convertToState(RFXComValueSelector valueSelector) throws RFXComException {
 
-			} else if (valueSelector == RFXComValueSelector.TOTAL_USAGE) {
+        State state;
 
-				state = new DecimalType(totalUsage);
+        if (valueSelector.getItemClass() == NumberItem.class) {
 
-			} else if (valueSelector == RFXComValueSelector.INSTANT_AMPS) {
+            if (valueSelector == RFXComValueSelector.SIGNAL_LEVEL) {
 
-				state = new DecimalType(instantAmps);
+                state = new DecimalType(signalLevel);
 
-			} else if (valueSelector == RFXComValueSelector.TOTAL_AMP_HOURS) {
+            } else if (valueSelector == RFXComValueSelector.BATTERY_LEVEL) {
 
-				state = new DecimalType(totalAmpHours);
+                state = new DecimalType(batteryLevel);
 
-			} else {
-				
-				throw new RFXComException("Can't convert " + valueSelector + " to NumberItem");
-				
-			}
+            } else if (valueSelector == RFXComValueSelector.INSTANT_POWER) {
 
-		} else {
+                state = new DecimalType(instantPower);
 
-			throw new RFXComException("Can't convert " + valueSelector
-					+ " to " + valueSelector.getItemClass());
+            } else if (valueSelector == RFXComValueSelector.TOTAL_USAGE) {
 
-		}
+                state = new DecimalType(totalUsage);
 
-		return state;
-	}
+            } else if (valueSelector == RFXComValueSelector.INSTANT_AMPS) {
 
-	@Override
-	public void setSubType(Object subType) throws RFXComException {
-		throw new RFXComException("Not supported");
-	}
+                state = new DecimalType(instantAmp);
 
-	@Override
-	public void setDeviceId(String deviceId) throws RFXComException {
-		throw new RFXComException("Not supported");
-	}
+            } else if (valueSelector == RFXComValueSelector.TOTAL_AMP_HOUR) {
 
-	@Override
-	public void convertFromState(RFXComValueSelector valueSelector, Type type)
-			throws RFXComException {
-		throw new RFXComException("Not supported");
-	}
+                state = new DecimalType(totalAmpHour);
 
-	@Override
-	public Object convertSubType(String subType) throws RFXComException {
-		
-		for (SubType s : SubType.values()) {
-			if (s.toString().equals(subType)) {
-				return s;
-			}
-		}
-		
-		// try to find sub type by number
-		try {
-			return SubType.values()[Integer.parseInt(subType)];
-		} catch (Exception e) {
-			throw new RFXComException("Unknown sub type " + subType);
-		}
-	}
-	
-	@Override
-	public List<RFXComValueSelector> getSupportedInputValueSelectors()
-			throws RFXComException {
-		return supportedInputValueSelectors;
-	}
+            } else {
 
-	@Override
-	public List<RFXComValueSelector> getSupportedOutputValueSelectors()
-			throws RFXComException {
-		return supportedOutputValueSelectors;
-	}
+                throw new RFXComException("Can't convert " + valueSelector + " to NumberItem");
+
+            }
+
+        } else {
+
+            throw new RFXComException("Can't convert " + valueSelector + " to " + valueSelector.getItemClass());
+
+        }
+
+        return state;
+    }
+
+    @Override
+    public void setSubType(Object subType) throws RFXComException {
+        throw new RFXComException("Not supported");
+    }
+
+    @Override
+    public void setDeviceId(String deviceId) throws RFXComException {
+        throw new RFXComException("Not supported");
+    }
+
+    @Override
+    public void convertFromState(RFXComValueSelector valueSelector, Type type) throws RFXComException {
+        throw new RFXComException("Not supported");
+    }
+
+    @Override
+    public Object convertSubType(String subType) throws RFXComException {
+
+        for (SubType s : SubType.values()) {
+            if (s.toString().equals(subType)) {
+                return s;
+            }
+        }
+
+        try {
+            return SubType.fromByte(Integer.parseInt(subType));
+        } catch (NumberFormatException e) {
+            throw new RFXComUnsupportedValueException(SubType.class, subType);
+        }
+    }
+
+    @Override
+    public List<RFXComValueSelector> getSupportedInputValueSelectors() throws RFXComException {
+        return SUPPORTED_INPUT_VALUE_SELECTORS;
+    }
+
+    @Override
+    public List<RFXComValueSelector> getSupportedOutputValueSelectors() throws RFXComException {
+        return SUPPORTED_OUTPUT_VALUE_SELECTORS;
+    }
 
 }

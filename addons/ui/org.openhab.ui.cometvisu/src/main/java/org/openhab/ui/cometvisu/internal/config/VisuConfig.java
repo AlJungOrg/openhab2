@@ -1,5 +1,6 @@
 /**
- * Copyright (c) 2014-2015 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2010-2017 by the respective copyright holders.
+ *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -34,6 +35,7 @@ import org.eclipse.smarthome.model.sitemap.Setpoint;
 import org.eclipse.smarthome.model.sitemap.Sitemap;
 import org.eclipse.smarthome.model.sitemap.Webview;
 import org.eclipse.smarthome.model.sitemap.Widget;
+import org.openhab.ui.cometvisu.internal.Config;
 import org.openhab.ui.cometvisu.internal.config.ConfigHelper.Transform;
 import org.openhab.ui.cometvisu.internal.config.beans.Address;
 import org.openhab.ui.cometvisu.internal.config.beans.Colorchooser;
@@ -57,7 +59,7 @@ import org.openhab.ui.cometvisu.internal.config.beans.Text;
 import org.openhab.ui.cometvisu.internal.config.beans.Trigger;
 import org.openhab.ui.cometvisu.internal.config.beans.Video;
 import org.openhab.ui.cometvisu.internal.config.beans.Web;
-import org.openhab.ui.cometvisu.servlet.CometVisuApp;
+import org.openhab.ui.cometvisu.internal.servlet.CometVisuApp;
 import org.rrd4j.ConsolFun;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,8 +106,8 @@ public class VisuConfig {
      */
     public String getConfigXml(HttpServletRequest req) {
         SchemaPages pagesBean = new SchemaPages();
+        pagesBean.setBackend("oh2");
         pagesBean.setDesign("metal");
-        pagesBean.setEnableColumnAdjustment(true);
         pagesBean.setMaxMobileScreenWidth(new BigDecimal(480));
         pagesBean.setBindClickToWidget(true);
 
@@ -113,11 +115,15 @@ public class VisuConfig {
         pagesBean.setScrollSpeed(new BigDecimal(0));
 
         // set relative path to XSD file
-        int requestFolders = req.getPathInfo().substring(1).split("/").length;
-        logger.debug("requestPath '{}' has '{}' parts", req.getPathInfo(), requestFolders);
+        File rootFolder = new File(Config.COMETVISU_WEBFOLDER);
+        File sitemap = new File(rootFolder, req.getPathInfo());
         String relXsd = "";
-        for (int i = 1; i < requestFolders; i++) {
+        File parent = sitemap.getParentFile();
+        File schema = new File(parent, "visu_config.xsd");
+        while (parent != rootFolder && !schema.exists()) {
+            parent = parent.getParentFile();
             relXsd += "../";
+            schema = new File(parent, "visu_config.xsd");
         }
         pagesBean.setNoNamespaceSchemaLocation(relXsd + schemaFile);
 
@@ -127,7 +133,7 @@ public class VisuConfig {
         configHelper = new ConfigHelper(pagesBean, app, sitemap.getName());
         createPages(pagesBean);
 
-        return marshal(pagesBean, rootFolder.getAbsolutePath() + File.separator + schemaFile);
+        return marshal(pagesBean, schema.getPath());
     }
 
     private String marshal(Pages bean, String xsdSchema) {
@@ -145,9 +151,9 @@ public class VisuConfig {
             marshaller.marshal(bean, sw);
             res = sw.toString();
         } catch (JAXBException e) {
-            logger.error(e.getMessage(), e);
+            logger.error("{}", e.getMessage(), e);
         } catch (SAXException e) {
-            logger.error(e.getMessage(), e);
+            logger.error("{}", e.getMessage(), e);
         }
         return res;
     }
@@ -162,7 +168,7 @@ public class VisuConfig {
             }
             configHelper.cleanup(rootPage, pagesBean);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
+            logger.error("", e);
             // show the exception in the config
             Text text = new Text();
             text.setFlavour("lithium");
@@ -191,7 +197,7 @@ public class VisuConfig {
             try {
                 item = app.getItemUIRegistry().getItem(widget.getItem());
             } catch (ItemNotFoundException e) {
-                logger.debug(e.getMessage());
+                logger.debug("{}", e.getMessage());
             }
         }
 
@@ -281,8 +287,9 @@ public class VisuConfig {
             Address address = configHelper.addAddress(info, item, transform);
             if (address != null) {
                 address.setMode("read");
-                if (item != null && !skipFormat)
+                if (item != null && !skipFormat) {
                     configHelper.addFormat(info, item.getLabel());
+                }
                 configHelper.addLabel(info, widget);
                 if (Transform.CONTACT.equals(transform)) {
                     info.setMapping("OpenClose");
